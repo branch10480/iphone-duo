@@ -16,3 +16,7 @@ iPhone Duo（Apple 初の折りたたみ iPhone、2026-09-09 発表 / 10-23 発�
 - **【web】** = Apple 公式 Tech Talk / newsroom / 仕様ページ等（各主張の末尾に URL）
 
 次のステップ: サンプルアプリ（このリポジトリに Xcode プロジェクトを追加する予定）。
+
+## 次のセッションへ
+
+`docs/handoff-next-session.md` を先に読む（push 方法・サンプルアプリの要件・ハマり所をまとめてある）。
