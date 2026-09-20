@@ -1,0 +1,45 @@
+--- a/UIKit/UINavigationItem.h	2026-08-26 13:49:00
++++ b/UIKit/UINavigationItem.h	2026-09-15 14:17:13
+@@ -63,6 +63,25 @@
+     UINavigationItemStyleEditor,
+ } NS_SWIFT_NAME(UINavigationItem.ItemStyle) API_AVAILABLE(ios(16.0)) API_UNAVAILABLE(tvos, watchos);
+ 
++/// How bars compress when different types of bars are hosted together
++/// and space is constrained.
++typedef NS_ENUM(NSInteger, UIVerticalBarCompressionBehavior) {
++    /// The automatic compression behavior.
++    ///
++    /// On iOS, this behavior prefers the tab bar.
++    UIVerticalBarCompressionBehaviorAutomatic = 0,
++    /// A compression behavior that prefers keeping bar items visible.
++    ///
++    /// The tab bar will compress before bar items when space is
++    /// constrained.
++    UIVerticalBarCompressionBehaviorPrefersBarItems API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos) = 1,
++    /// A compression behavior that prefers keeping the tab bar visible.
++    ///
++    /// Bar items will compress before the tab bar when space is
++    /// constrained.
++    UIVerticalBarCompressionBehaviorPrefersTabBar API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos) = 2,
++} API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos);
++
+ UIKIT_EXTERN API_AVAILABLE(ios(16.0)) API_UNAVAILABLE(tvos, watchos) NS_SWIFT_UI_ACTOR
+ @protocol UINavigationItemRenameDelegate <NSObject>
+ 
+@@ -284,6 +303,16 @@
+ 
+ @end
+ 
++@interface UINavigationItem (VerticalBar)
++
++/// When the tab bar and navigation/toolbar items are both rendered together
++/// in the vertical bar, this property controls which items compress first.
++///
++/// The default value is `UIVerticalBarCompressionBehaviorAutomatic`.
++@property (nonatomic, readwrite, assign) UIVerticalBarCompressionBehavior verticalBarCompressionBehavior API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos);
++
++@end
++
+ NS_HEADER_AUDIT_END(nullability, sendability)
+ 
+ #else

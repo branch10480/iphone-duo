@@ -1,0 +1,35 @@
+--- a/UIKit/UIBarButtonItem.h	2026-08-26 13:25:27
++++ b/UIKit/UIBarButtonItem.h	2026-09-15 14:17:08
+@@ -69,6 +69,20 @@
+ UIKIT_EXTERN const UIBarButtonItemVisibilityPriority UIBarButtonItemVisibilityPriorityLow API_AVAILABLE(ios(27.0)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos);
+ UIKIT_EXTERN const UIBarButtonItemVisibilityPriority UIBarButtonItemVisibilityPriorityHigh API_AVAILABLE(ios(27.0)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos);
+ 
++typedef NS_ENUM(NSInteger, UIBarButtonItemAxisBehavior) {
++    /// The automatic behavior. The system infers the
++    /// supported axes based on the contents of the item.
++    UIBarButtonItemAxisBehaviorAutomatic = 0,
++    /// The item only supports horizontal bars. If an item only supports
++    /// horizontal bars and no horizontal bars are present, the item is
++    /// not shown.
++    UIBarButtonItemAxisBehaviorHorizontalOnly API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos) = 1,
++    /// The item supports both horizontal and vertical bars,
++    /// and prefers a vertical placement when both horizontal
++    /// and vertical bars are present
++    UIBarButtonItemAxisBehaviorVerticalPreferred API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(visionos) API_UNAVAILABLE(watchos, tvos) = 2,
++} API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos) NS_SWIFT_NAME(UIBarButtonItem.AxisBehavior);
++
+ @class UIImage, UIView;
+ 
+ UIKIT_EXTERN API_AVAILABLE(ios(2.0)) API_UNAVAILABLE(watchos) NS_SWIFT_UI_ACTOR
+@@ -159,6 +173,11 @@
+ /// Default: NO
+ @property (nonatomic, readwrite, getter=isPaddingRemoved, setter=setPaddingRemoved:) BOOL paddingRemoved API_AVAILABLE(ios(27.0), tvos(27.0), visionos(27.0)) API_UNAVAILABLE(watchos);
+ 
++/// The bar axis behavior of the item.
++///
++/// The default value is `UIBarButtonItemAxisBehaviorAutomatic`.
++@property (nonatomic, readwrite, assign) UIBarButtonItemAxisBehavior axisBehavior API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos);
++
+ /// A UIMenuElement that should substitute for the UIBarButtonItem when displayed in a menu.
+ @property (nonatomic, readwrite, copy, nullable) UIMenuElement *menuRepresentation API_AVAILABLE(ios(16.0)) API_UNAVAILABLE(tvos, watchos);
+ 

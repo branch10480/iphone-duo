@@ -1,0 +1,16 @@
+--- a/UIKit/UIWindowScene.h	2026-08-14 13:56:41
++++ b/UIKit/UIWindowScene.h	2026-09-15 14:37:02
+@@ -130,6 +130,13 @@
+ // A session role which defines an application for Assistive Access
+ UIKIT_EXTERN UISceneSessionRole const UIWindowSceneSessionRoleAssistiveAccessApplication API_AVAILABLE(ios(26.0), tvos(26.0), visionos(26.0)) API_UNAVAILABLE(watchos);
+ 
++/// A session role for scenes that present content during camera capture.
++///
++/// The system assigns this role automatically to scenes created from a camera capture scene accessory
++/// registration. Clients do not set it directly; it is provided so a scene's purpose can be identified
++/// at runtime.
++UIKIT_EXTERN UISceneSessionRole const UIWindowSceneSessionRoleCameraCaptureAccessory API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos) NS_SWIFT_NAME(windowCameraCaptureAccessory);
++
+ #pragma mark - UIWindowSceneDismissalAnimation
+ typedef NS_ENUM(NSInteger, UIWindowSceneDismissalAnimation) {
+     UIWindowSceneDismissalAnimationStandard = 1,

@@ -1,0 +1,26 @@
+--- a/UIKit/UIViewLayoutRegion.h	2026-08-26 13:49:03
++++ b/UIKit/UIViewLayoutRegion.h	2026-09-15 14:37:09
+@@ -7,6 +7,8 @@
+ //
+ 
+ #import <Foundation/Foundation.h>
++#import <UIKit/UIGeometry.h>
++#import <UIKit/UIKitDefines.h>
+ 
+ NS_HEADER_AUDIT_BEGIN(nullability, sendability)
+ 
+@@ -23,6 +25,14 @@
+ + (UIViewLayoutRegion *)marginsLayoutRegionWithCornerAdaptation:(UIViewLayoutRegionAdaptivityAxis)adaptivityAxis;
+ + (UIViewLayoutRegion *)readableContentLayoutRegionWithCornerAdaptation:(UIViewLayoutRegionAdaptivityAxis)adaptivityAxis;
+ 
++/// Returns a bar layout region of a given extent on a given edge.
++/// @note Only a single edge is allowed per region.
+++ (UIViewLayoutRegion *)layoutRegionForBarOnEdge:(UIRectEdge)edge extent:(CGFloat)extent API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos);
++
++/// Returns a bar layout region of a given extent on a given directional edge.
++/// @note Only a single edge is allowed per region.
+++ (UIViewLayoutRegion *)layoutRegionForBarOnDirectionalEdge:(NSDirectionalRectEdge)edge extent:(CGFloat)extent API_AVAILABLE(ios(27.1), tvos(27.1), visionos(27.1)) API_UNAVAILABLE(watchos);
++
+ + (instancetype)new NS_UNAVAILABLE;
+ - (instancetype)init NS_UNAVAILABLE;
+ 

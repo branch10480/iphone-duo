@@ -1,0 +1,32 @@
+--- a/UIKit/UISceneAccessory.h	2026-08-26 13:48:50
++++ b/UIKit/UISceneAccessory.h	2026-09-15 14:36:57
+@@ -49,6 +49,29 @@
+ ///   - userInfo: An object that can be used to pass additional context to the scene delegate upon connection.
+ + (instancetype)externalNonInteractiveSceneAccessoryWithConfiguration:(UISceneConfiguration *)sceneConfiguration userInfo:(id)userInfo NS_SWIFT_NAME(externalNonInteractive(sceneConfiguration:userInfo:));
+ 
++/// Creates a scene accessory for presenting content during camera capture.
++///
++/// The content may be presented while the app is in the foreground and has an active camera capture session.
++/// The system determines whether and where to present it. The content can be interactive.
++///
++/// - Parameter sceneConfiguration: A scene configuration value with a delegate type defined for it.
+++ (instancetype)cameraCaptureSceneAccessoryWithConfiguration:(UISceneConfiguration *)sceneConfiguration API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(macCatalyst, tvos, visionos, watchos) NS_SWIFT_NAME(cameraCapture(sceneConfiguration:));
++
++/// Creates a scene accessory for presenting content during camera capture, passing additional context to the
++/// scene delegate.
++///
++/// The content may be presented while the app is in the foreground and has an active camera capture session.
++/// The system determines whether and where to present it. The content can be interactive.
++///
++/// This variant accepts a `userInfo` object to pass additional context to the scene delegate upon connection.
++/// The `userInfo` object is accessible in the corresponding scene via
++/// ``UISceneConnectionOptions.sceneAccessoryUserInfo``.
++///
++/// - Parameters:
++///   - sceneConfiguration: A scene configuration value with a delegate type defined for it.
++///   - userInfo: An object that can be used to pass additional context to the scene delegate upon connection.
+++ (instancetype)cameraCaptureSceneAccessoryWithConfiguration:(UISceneConfiguration *)sceneConfiguration userInfo:(id)userInfo API_AVAILABLE(ios(27.1)) API_UNAVAILABLE(macCatalyst, tvos, visionos, watchos) NS_SWIFT_NAME(cameraCapture(sceneConfiguration:userInfo:));
++
+ - (instancetype)init NS_UNAVAILABLE;
+ 
+ @end
