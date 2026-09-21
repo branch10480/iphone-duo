@@ -1,0 +1,318 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3AF0CCD36A59449474CE6DED /* OverviewPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2994A81D56CE87C8E7111F /* OverviewPage.swift */; };
+		81659703451ABDC2B58B1ED6 /* UIKitDemoPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42355B9A57236514F1EFDD8E /* UIKitDemoPage.swift */; };
+		884B0691FDB311FF934DBB51 /* UIKitDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BC2AE051570D558B39373D /* UIKitDemo.swift */; };
+		8E2C405A6809953D1D8801E1 /* ReservedRegionsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD9B4A47825A345C4A5D1EBC /* ReservedRegionsPage.swift */; };
+		A36794914F5053CBA30FA408 /* DuoLabApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E1BE4E5E89A4DBB03CF866 /* DuoLabApp.swift */; };
+		CFD5A573BCEAF71E60C4CF19 /* VerticalBarPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77C14F83E49001313FDAD14 /* VerticalBarPage.swift */; };
+		D5A3C8DBFFB84EBCB5102E90 /* HingePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247618DB3A6918FF25F19263 /* HingePage.swift */; };
+		E30A8BDC2F138BB092831E3E /* TwoPanePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E714F5570E6D97AE351D43F /* TwoPanePage.swift */; };
+		FD013362BE6EF493C83A7139 /* ScenesPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCC545BD9C9B770381B8B007 /* ScenesPage.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1C2994A81D56CE87C8E7111F /* OverviewPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewPage.swift; sourceTree = "<group>"; };
+		1E714F5570E6D97AE351D43F /* TwoPanePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoPanePage.swift; sourceTree = "<group>"; };
+		247618DB3A6918FF25F19263 /* HingePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HingePage.swift; sourceTree = "<group>"; };
+		42355B9A57236514F1EFDD8E /* UIKitDemoPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitDemoPage.swift; sourceTree = "<group>"; };
+		93E1BE4E5E89A4DBB03CF866 /* DuoLabApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoLabApp.swift; sourceTree = "<group>"; };
+		BCC545BD9C9B770381B8B007 /* ScenesPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesPage.swift; sourceTree = "<group>"; };
+		CD9B4A47825A345C4A5D1EBC /* ReservedRegionsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservedRegionsPage.swift; sourceTree = "<group>"; };
+		D77C14F83E49001313FDAD14 /* VerticalBarPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerticalBarPage.swift; sourceTree = "<group>"; };
+		DE5A10246AE2EFCC3D36F05F /* DuoLab.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DuoLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6BC2AE051570D558B39373D /* UIKitDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitDemo.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		4B5D0FD4E6F2A9E89F46705D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DE5A10246AE2EFCC3D36F05F /* DuoLab.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6C2B649EBF887A8F86F3F812 /* DuoLab */ = {
+			isa = PBXGroup;
+			children = (
+				93E1BE4E5E89A4DBB03CF866 /* DuoLabApp.swift */,
+				247618DB3A6918FF25F19263 /* HingePage.swift */,
+				1C2994A81D56CE87C8E7111F /* OverviewPage.swift */,
+				CD9B4A47825A345C4A5D1EBC /* ReservedRegionsPage.swift */,
+				BCC545BD9C9B770381B8B007 /* ScenesPage.swift */,
+				1E714F5570E6D97AE351D43F /* TwoPanePage.swift */,
+				F6BC2AE051570D558B39373D /* UIKitDemo.swift */,
+				42355B9A57236514F1EFDD8E /* UIKitDemoPage.swift */,
+				D77C14F83E49001313FDAD14 /* VerticalBarPage.swift */,
+			);
+			path = DuoLab;
+			sourceTree = "<group>";
+		};
+		DAF077E422E5F3D30DED9054 = {
+			isa = PBXGroup;
+			children = (
+				6C2B649EBF887A8F86F3F812 /* DuoLab */,
+				4B5D0FD4E6F2A9E89F46705D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A0185B0E041E6418B120E952 /* DuoLab */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4B2F803F8BA24FBC9710CFF4 /* Build configuration list for PBXNativeTarget "DuoLab" */;
+			buildPhases = (
+				0F71E2B213EA7A2E6CF071DA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DuoLab;
+			packageProductDependencies = (
+			);
+			productName = DuoLab;
+			productReference = DE5A10246AE2EFCC3D36F05F /* DuoLab.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6F74F49F83A6CDEA439F9173 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+			};
+			buildConfigurationList = 58433D1373292DDBD91FB665 /* Build configuration list for PBXProject "iphone-duo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = DAF077E422E5F3D30DED9054;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A0185B0E041E6418B120E952 /* DuoLab */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0F71E2B213EA7A2E6CF071DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A36794914F5053CBA30FA408 /* DuoLabApp.swift in Sources */,
+				D5A3C8DBFFB84EBCB5102E90 /* HingePage.swift in Sources */,
+				3AF0CCD36A59449474CE6DED /* OverviewPage.swift in Sources */,
+				8E2C405A6809953D1D8801E1 /* ReservedRegionsPage.swift in Sources */,
+				FD013362BE6EF493C83A7139 /* ScenesPage.swift in Sources */,
+				E30A8BDC2F138BB092831E3E /* TwoPanePage.swift in Sources */,
+				884B0691FDB311FF934DBB51 /* UIKitDemo.swift in Sources */,
+				81659703451ABDC2B58B1ED6 /* UIKitDemoPage.swift in Sources */,
+				CFD5A573BCEAF71E60C4CF19 /* VerticalBarPage.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		008A0E584E6DFBCBE5C89005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.branch10480.duolab;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		22EA73A207A8E23CB48EE2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_LANGUAGE = en;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		A615BA4A1D1742401210BC7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.branch10480.duolab;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C2A55F384A144AFC40104C03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_LANGUAGE = en;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4B2F803F8BA24FBC9710CFF4 /* Build configuration list for PBXNativeTarget "DuoLab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				008A0E584E6DFBCBE5C89005 /* Debug */,
+				A615BA4A1D1742401210BC7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		58433D1373292DDBD91FB665 /* Build configuration list for PBXProject "iphone-duo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2A55F384A144AFC40104C03 /* Debug */,
+				22EA73A207A8E23CB48EE2F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6F74F49F83A6CDEA439F9173 /* Project object */;
+}

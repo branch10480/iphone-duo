@@ -1,0 +1,23 @@
+name: iphone-duo
+options:
+  bundleIdPrefix: com.branch10480
+  deploymentTarget:
+    iOS: "27.1"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    DEVELOPMENT_LANGUAGE: en
+targets:
+  DuoLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: DuoLab
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.branch10480.duolab
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        SUPPORTS_MACCATALYST: NO
