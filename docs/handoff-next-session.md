@@ -1,17 +1,20 @@
-# iPhone Duo サンプルアプリ —— 引き継ぎ書（2026-09-21 更新）
+# iPhone Duo サンプルアプリ —— 引き継ぎ書（2026-09-21 最終更新）
 
-## 状態（2026-09-21 時点）
+## 状態（2026-09-21 時点・区切りつき）
 
-- **サンプルアプリ「DuoLab」は完成・ビルド成功・シミュレータ起動確認済み**。push も済み（remote `origin/main`）。
+- **サンプルアプリ「DuoLab」は完成・ビルド成功・シミュレータ起動・全タブ動作確認済み・push 済み（区切り）**。
+  - コミット: `85e5a05`（DuoLab 本体 + project.yml + tool、14ファイル）/ `9894b44`（この handoff）。
+  - リモート `origin/main` HEAD = `9894b44`（`gh api` で一致確認）。ローカル未コミットなし。
 - §6 の 14 項目を網羅する 7タブ構成（Overview / Hinge / Two Pane / Regions / Bar / Scenes / UIKit）。
-- iPhone Duo シミュレータ（iOS 27.1、`6B8C075B…`）で起動し全タブを巡回。クラッシュなし（`openWindow` 要求・UIKit デモ生成を含む）。
+- iPhone Duo シミュレータ（iOS 27.1、`6B8C075B…`）で起動し全タブ巡回。クラッシュなし（`openWindow` 要求・UIKit デモ生成を含む）。clean 再ビルドでも `OTHER_SWIFT_FLAGS=-disable-sandbox` 付きで `BUILD SUCCEEDED`。
 
 ## このセッションでやったこと
 
 1. **`@State` マクロ不解決の根本原因を特定・解消**
    - 症状: `SwiftUIMacros.StateMacro could not be found … swift-plugin-server produced malformed response`（`@State` 全箇所）。各コンパイル直前に `sandbox-exec: sandbox_apply: Operation not permitted` がログに出る。
    - 原因: seed の sandbox 内で xcodebuild がコンパイラ subprocess（`swift-plugin-server`）を `sandbox-exec` で spawn するのに失敗 → 外部マクロが解決できない。**アプリコードのバグではない**。
-   - 解決: build setting `OTHER_SWIFT_FLAGS=-disable-sandbox`（swift-frontend の `-disable-sandbox` = subprocess sandbox を無効化）。素の swiftc での A/B プローブ（sandbox ON=FAIL / OFF=OK）で確定。xcb の `extraArgs` に恒久設定済み（`.xcodebuildmcp/config.yaml` に persist）。
+   - 解決: build setting `OTHER_SWIFT_FLAGS=-disable-sandbox`（swift-frontend の `-disable-sandbox` = subprocess sandbox を無効化）。素の swiftc での A/B プローブ（sandbox ON=FAIL / OFF=OK）で確定。xcb の `extraArgs` に設定し persist。
+   - **このフラグは seed sandbox 内のビルド用**。実マシンの Xcode には不要なので、リポジトリ（pbxproj）には入れず gitignore の `.xcodebuildmcp/config.yaml` に置いた。チェックアウトして xcb を使う側は `xcb_session_set_defaults` で再指定。
    - 副産物: `-SWIFT_FLAGS=…` / `-GCC_SWIFT_FLAGS=…` は効かない（Swift コンパイルに渡らない）のは確認済み。`OTHER_SWIFT_FLAGS` が正。
 2. **UIKitDemo.swift の本来のバグ修正**
    - `self.setNeedsLayout()`（`self` は UIViewController）→ `view.setNeedsLayout()`。
@@ -22,9 +25,12 @@
 3. **その他のコード修正**
    - `HingeGlowView.intensity` の getter が 2 文なのに末尾式が返却されなかった → 明示 `return`。
    - `ToolbarItemGroup` の子に `ToolbarItem.axisBehavior(...)`（`some ToolbarContent`）を置くと group の `View` 制約を満たさない → 各 item を素の Button 化し **group 本体に** `axisBehavior(.verticalPreferred)` を付与（`axisBehavior` は `ToolbarContent` 拡張、ToolbarItem/ToolbarItemGroup が conform）。
-4. **実機相当の動作確認**（sim `6B8C075B`、iOS 27.1）
+4. **動作確認**（sim `6B8C075B`、iOS 27.1）
    - 起動 OK、7タブ表示、UIKit タブ（`UIHingeInteraction` 生成＋trait 登録＋`AVCaptureDeviceDirectionCoordinator`）でクラッシュなし、`openWindow(id:"companion")` 要求後に生存（外側ディスプレイではサイレント無視の想定どおり）。
    - 注: seed の sandbox 内 `ps -p <pid>` は見かけ上 GONE になりうる（sandbox のプロセス表示制限）。生存確認は `pgrep -f DuoLab` を使う。
+5. **コミット・push（区切り）**
+   - `85e5a05`（本体）+ `9894b44`（handoff）を push。リモート main = `9894b44` を `gh api` で確認。
+   - **push 経路の新しい知見**: このセッションでは `git push origin main` / `git push -u origin main` / `cd … && git push` は**すべて素の sandbox（DNS deny）に落ちた**（`Could not resolve host`）。通ったのは **upstream 設定済み＋単独 `git push`（cd なし・複合コマンドなし）のみ**。9/20 セッションでは `git push -u origin main` が通っていたので、転送のマッチング規則は不安定 → **まず upstream 付きの裸 `git push` を試す**。
 
 ## 残作業（次のセッション）
 
@@ -35,14 +41,15 @@
 
 ## 次のセッションの注意点（ハマり所・確定済み）
 
-- **ビルドは必ず `OTHER_SWIFT_FLAGS=-disable-sandbox`**（上の 1 を参照）。効かなくなったらまずこの build setting を確認。xcb の extraArgs に設定済みなので通常はそのまま `xcb_build_sim`。
+- **ビルドは必ず `OTHER_SWIFT_FLAGS=-disable-sandbox`**（上の 1 を参照）。効かなくなったらまずこの build setting を確認。seed 環境では xcb の extraArgs に設定済み（`.xcodebuildmcp/config.yaml`、gitignore）なので通常はそのまま `xcb_build_sim`。実マシンの Xcode では不要。
+- **`xcb_session_set_defaults` の部分更新で `extraArgs`（配列）が古い値に置き換わった**のを 1 回観測（bundleId だけの呼び出しで 2 項目が 1 項目に）。毎回**全キー（env・extraArgs・persist）を一緒に渡す**。
 - **この Mac に 2 つの Xcode がある。** `xcode-select` の既定は `/Applications/Xcode_27_1.app`（Duo 対応）。「無い」と結論しない。SDK パスは必ず `Xcode_27_1.app` 配下。xcb の env に `DEVELOPER_DIR` を設定済み。
 - **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否で workspace arena を作れず、`-derivedDataPath build/DerivedData` を付けても LogStore 等が `Operation not permitted`）。ビルドは xcb（XcodeBuildMCP）を使う。`xcrun` の cache ファイル（`/var/folders/…/xcrun_db-*`）も同様に拒否（warning として出るが無害）。
 - **`swiftc -typecheck` の単体プローブは効く**（module cache を `build/probe/modcache` 等 cwd 配下へ `-module-cache-path`、TMPDIR も cwd 配下へ）。plugin 動作の切り分けに便利。
 - **シミュレータ 2 台**（iOS 27.1）: `6B8C075B-…`（主に使用）、`0F5B43CE-…`。他は iOS 27.0（DuoLab DT 27.1 と非互換）。
 - 内側 `size class` は regular×regular、`supportedInterfaceOrientations` に従わない（orientation 判定は size class に置換）。
 - ヒンジデータ（angle/status）は**インタラクション用**。レイアウトは Arrangement / Reserved Region。
-- push は seed の git-network 転送（単独 `git push`）。`gh --source/--push` は allowlist 外。
+- **push は upstream 付きの単独 `git push`**（上の 5 を参照。cd/&&/明示 refspec は素の sandbox に落ちる）。`gh --source/--push` は allowlist 外。
 
 ## API 早見（詳細・コード例は docs/iphone-duo-support.md §4、実装は DuoLab/*.swift）
 
