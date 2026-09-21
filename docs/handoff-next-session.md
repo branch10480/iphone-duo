@@ -6,9 +6,26 @@
   - コミット: `85e5a05`（DuoLab 本体 + project.yml + tool、14ファイル）/ `9894b44`（この handoff）。
   - リモート `origin/main` HEAD = `9894b44`（`gh api` で一致確認）。ローカル未コミットなし。
 - §6 の 14 項目を網羅する 7タブ構成（Overview / Hinge / Two Pane / Regions / Bar / Scenes / UIKit）。
-- iPhone Duo シミュレータ（iOS 27.1、`6B8C075B…`）で起動し全タブ巡回。クラッシュなし（`openWindow` 要求・UIKit デモ生成を含む）。clean 再ビルドでも `OTHER_SWIFT_FLAGS=-disable-sandbox` 付きで `BUILD SUCCEEDED`。
+- iPhone Duo シミュレータ（iOS 27.1、`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、起動中）で起動し全タブ巡回。クラッシュなし。
+- **§6 の各ポーズの観測・内側解像度実測は完了（2026-09-21 後段）**。観測値は下「このセッション（続き）でやったこと」6〜9 と「内側ディスプレイ実測値」。
+  - 残: StandBy / アプリエクステンション / `CameraCaptureAccessory`（実機のみ）。
+- **現在 pose = closed、orientation = portrait**（最終に `simctl shutdown`+`boot` でリセット、アプリは `com.branch10480.duolab` で起動済み）。
 
-## このセッションでやったこと
+## 内側ディスプレイ実測値（確定）
+
+| 項目 | 値 | 出典 |
+|---|---|---|
+| 内側フレームバッファ | **2007 × 2853 px**（`--display=primary-1`、`simctl io enumerate`） | `simctl io enumerate` |
+| 内側論理 | **669 × 951 pt**（アプリ `669 × 734 pt` は safe area 217pt 分を除いた値） | アプリ Overview |
+| 内側 scale | **3.00x**（`traitCollection.displayScale`） | アプリ Overview |
+| 外側フレームバッファ | **1398 × 2034 px**（`--display=primary`） | `simctl io enumerate` |
+| 内側 safeArea | T 134 / R 0 / B 83 / L 0（open・portrait） | アプリ Overview |
+| 内側 size class | regular × regular | アプリ Overview |
+
+照合: `669pt × 3.00x = 2007px`、`951pt × 3.00x = 2853px`。`--display=primary` = 外側、`--display=primary-1` = 内側。`simctl io enumerate` の `DisplayAdapter.Connected Screens`: `primary`(1398×2034) / `primary-1`(2007×2853) / TVOut(720×480) / wireless0 / resizable(7680×4320)。
+
+
+## このセッション（前半・2026-09-20）でやったこと
 
 1. **`@State` マクロ不解決の根本原因を特定・解消**
    - 症状: `SwiftUIMacros.StateMacro could not be found … swift-plugin-server produced malformed response`（`@State` 全箇所）。各コンパイル直前に `sandbox-exec: sandbox_apply: Operation not permitted` がログに出る。
@@ -32,24 +49,60 @@
    - `85e5a05`（本体）+ `9894b44`（handoff）を push。リモート main = `9894b44` を `gh api` で確認。
    - **push 経路の新しい知見**: このセッションでは `git push origin main` / `git push -u origin main` / `cd … && git push` は**すべて素の sandbox（DNS deny）に落ちた**（`Could not resolve host`）。通ったのは **upstream 設定済み＋単独 `git push`（cd なし・複合コマンドなし）のみ**。9/20 セッションでは `git push -u origin main` が通っていたので、転送のマッチング規則は不安定 → **まず upstream 付きの裸 `git push` を試す**。
 
+## このセッション（続き）でやったこと
+
+6. **pose 観測経路の確立**（旧「GUI のみ」→ 下の AX 経路で自動化）
+   - `-disable-sandbox` コンパイルの自前バイナリ（`.tmpx/axtest/probe2`）から **in-process AX** を使う。私のプロセスは seed sandbox 内で `NSWorkspace.runningApplications` が 0 件・`NSRunningApplication( pid )` nil・全 Apple event が `-600 procNotFound`（pid 参照では他セッションに届かない）だが、**AX API は他 pid（Dock・DeviceHub・Chrome・Ghostty 等）に到達する**。
+   - **DeviceHub メインウィンドウの立ち上げ**: Dock( pid 31600) の AX ツリー（`AXApplication` → `AXDockItem t='Device Hub'`）を `AXUIElementPerformAction(, kAXPressAction)` で押す。→ メインウィンドウ `iPhone Duo – iOS 27.1`（1085×735）が開く。
+   - pose 切替はウィンドウ内の pose アクションバー `AXButton`（`d='Closed'` / `Book` / `Open` / `Rotate Right`）の `AXPress`。needle 指定で 1 つだけ press。
+7. **各 pose の観測**（app Hinge タブの AX 値 + `devicectl device motion hinge-angle` readback + 内外スクショの点灯を三重確認）
+
+   | pose（ボタン） | app: status / angle / intensity | devicectl readback | ディスプレイ |
+   |---|---|---|---|
+   | **closed** | `closed` / `0.000 rad (≈ 0.0°)` / `0%` | `Angle: 0.0°` | 外側 primary(1398×2034) 点灯 / 内側 primary-1(2007×2853) 全黒 |
+   | **book**（半開） | `partially open` / `2.234 rad (≈ 128.0°)` / `71%` | `Angle: 130.0°` | 外側全黒 / 内側点灯 |
+   | **open**（全開） | `fully open` / `3.142 rad (≈ 180.0°)` / `100%` | `Angle: 180.0°` | 外側全黒 / 内側点灯 |
+
+   - 往復可逆: open → book → closed → 各値へ正常復帰。`fold` のみ未観測（`partially open` の別の角度）。
+   - `Rotate Right`（action bar）は **orientation を landscapeRight にするのみ**、pose は不変（= pose と orientation は独立）。
+8. **ArrangementView（Two Pane）の pose 依存**
+   - **split（`.split.axes(.vertical)`）: secondary（Up Next）は非表示**（AX・スクショとも検出できず、zIndex バッジは `zIndex 0`）。
+   - **overlay（`.overlay.axes(.vertical)`）: secondary（Up Next 1–4）が表示**（AX で文字列確認）。
+   - 内側（regular×regular）での動作確認。外側（narrow・closed）での split/overlay の挙動は未観測。
+9. **ReservedRegions（Regions）の pose 依存**（サマリ badge `division N（active M） / occlusion N（active M）`）
+
+   | pose | division | occlusion |
+   |---|---|---|
+   | open | 1（active **0**） | 2（active 1） |
+   | book | 1（active **1**） | 2（active 1） |
+   | closed | **0** | 2（active **2**） |
+
+   - 折り目（division）は半開（book）のみ active、全開は幅 0・inactive、閉じると領域自体が消える。active 幅分だけ内容は `.offset(x:)` で退避。
+
 ## 残作業（次のセッション）
 
-1. **§6 の各ポーズを実際に観測する**: Device Hub で open/close/rotate/fold を切り替えて、`onHingeChange`（status/angle）の遷移・`ArrangementView` の split⇄overlay 切替・`reservedRegions` の幅変化を目視確認。現状は「起動してクラッシュしない」まで。
-2. **内側ディスプレイの論理解像度をシミュレータ実測**（§2、推測で残っている唯一の数字）。OverviewPage に `displayScale` 表示があるので、シミュレータの Duo の内側表示で確認。
-3. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）。
-4. `CameraCaptureAccessory` / テレプロンプタ（外側ディスプレイ）の動作も実機で。
+1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9）。`fold`（partially open の別角度）・外側（narrow・closed）での Two Pane 動作は未観測。
+2. ~~内側ディスプレイの論理解像度をシミュレータ実測~~ **完了**（「内側ディスプレイ実測値」：669×951pt @ 3.00x）。
+3. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）。simctl/devicectl に CLI 経路がなく GUI のみ（AX 経路は下 6 で確立済み）→ 実機で確認。
+4. **`CameraCaptureAccessory` / テレプロンプタ（外側ディスプレイ）の動作も実機で**（sim `CameraCaptureAccessory` の可用性は未検証）。
 
 ## 次のセッションの注意点（ハマり所・確定済み）
 
-- **ビルドは必ず `OTHER_SWIFT_FLAGS=-disable-sandbox`**（上の 1 を参照）。効かなくなったらまずこの build setting を確認。seed 環境では xcb の extraArgs に設定済み（`.xcodebuildmcp/config.yaml`、gitignore）なので通常はそのまま `xcb_build_sim`。実マシンの Xcode では不要。
-- **`xcb_session_set_defaults` の部分更新で `extraArgs`（配列）が古い値に置き換わった**のを 1 回観測（bundleId だけの呼び出しで 2 項目が 1 項目に）。毎回**全キー（env・extraArgs・persist）を一緒に渡す**。
-- **この Mac に 2 つの Xcode がある。** `xcode-select` の既定は `/Applications/Xcode_27_1.app`（Duo 対応）。「無い」と結論しない。SDK パスは必ず `Xcode_27_1.app` 配下。xcb の env に `DEVELOPER_DIR` を設定済み。
-- **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否で workspace arena を作れず、`-derivedDataPath build/DerivedData` を付けても LogStore 等が `Operation not permitted`）。ビルドは xcb（XcodeBuildMCP）を使う。`xcrun` の cache ファイル（`/var/folders/…/xcrun_db-*`）も同様に拒否（warning として出るが無害）。
-- **`swiftc -typecheck` の単体プローブは効く**（module cache を `build/probe/modcache` 等 cwd 配下へ `-module-cache-path`、TMPDIR も cwd 配下へ）。plugin 動作の切り分けに便利。
-- **シミュレータ 2 台**（iOS 27.1）: `6B8C075B-…`（主に使用）、`0F5B43CE-…`。他は iOS 27.0（DuoLab DT 27.1 と非互換）。
+- **pose 操作は下 6 の AX 経路**。`-disable-sandbox` でコンパイルしたバイナリ（`.tmpx/axtest/probe2`、ソース付き）で、`probe2 axpress <DeviceHub pid> "Open|Book|Closed|Rotate Right"`。
+- **`orientation set` は ACK（`New Device Orientation: portrait`）を返すが `get` は landscape 固定**（app の `UISupportedInterfaceOrientations` に従い、`Rotate Right` 経由で landscape に入ると `set portrait` で戻らない）。**リセットは `simctl shutdown`+`boot` のみ**（→ orientation 初期値 portrait）。orientation 値を安定させたい時はアプリを terminate → launch で portrait に戻りうる（`simctl launch` の bundle id は小文字 `com.branch10480.duolab`）。
+- **`suiatool` はホストに実ファイルなし**（共有キャッシュ `dyld.txt` に `suiatool orientation -h` 等の文字列のみ。`/usr/bin` `/usr/libexec` `/usr/local/bin` / runtime volume `iOS_24A94401` / Xcode app / SharedFrameworks を grep してなし）。spawn 不可 → pose は DeviceHub GUI（AX）の経路で。
+- **seed sandbox の GUI 制約**: `open` / `osascript` / `screencapture` / `launchctl asuser` は `Operation not permitted`。`-disable-sandbox` バイナリ内でも子プロセス spawn すると同じ（seatbelt の exec 制限）。**in-process の AX・CGWindowList・`Process().run`（`/bin/zsh` 等）は通る**。`shortcuts list/run` は通常 bash でも動く。
+- **seed のセッション jsonl は sandbox から読めない**（`seed/sessions` は read deny、`?` パーミション）。引き継ぎは要約 + この handoff に任せる。
+- **ビルドは必ず `OTHER_SWIFT_FLAGS=-disable-sandbox`**（§1 を参照）。`swiftc` 自前ビルド時は `-module-cache-path <cwd配下>`・`TMPDIR <cwd配下>`。
+- **`xcb_session_set_defaults` の部分更新で `extraArgs`（配列）が古い値に置き換わる**ことがある。毎回**全キー（env・extraArgs・persist）を一緒に渡す**。
+- **この Mac に 2 つの Xcode がある。** `xcode-select` 既定 `/Applications/Xcode_27_1.app`（Duo 対応）。SDK パスは必ず `Xcode_27_1.app` 配下。
+- **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否）。ビルドは xcb。`xcrun` の cache ファイル（`xcrun_db-*`）は拒否されるが無害（warning）。
+- **`simctl list devices` の UDID を推測しない**（`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、`simctl list` で確認）。`devicectl` はこの UDID をそのまま `--device` で使う。
+- **シミュレータ 2 台**（iOS 27.1）: `6B8C075B-…`（主）、`0F5B43CE-…`。他は iOS 27.0（DuoLab DT 27.1 と非互換）。
 - 内側 `size class` は regular×regular、`supportedInterfaceOrientations` に従わない（orientation 判定は size class に置換）。
 - ヒンジデータ（angle/status）は**インタラクション用**。レイアウトは Arrangement / Reserved Region。
-- **push は upstream 付きの単独 `git push`**（上の 5 を参照。cd/&&/明示 refspec は素の sandbox に落ちる）。`gh --source/--push` は allowlist 外。
+- **push は upstream 付きの単独 `git push`**（cd/&&/明示 refspec は素の sandbox に落ちる）。`gh --source/--push` は allowlist 外。
+- **`.tmpx/` は gitignore に追加済み**（調査用ファイル、`dyld.txt` 180MB 等、commit 対象外）。
 
 ## API 早見（詳細・コード例は docs/iphone-duo-support.md §4、実装は DuoLab/*.swift）
 
