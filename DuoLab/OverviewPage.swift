@@ -46,16 +46,18 @@ struct OverviewPage: View {
         }
     }
 
-    /// 内側ディスプレイは regular×regular（閉じた外側は iPhone 18 Pro と同様の compact）。
-    /// orientation ではなく size class で判断する（内側は supportedInterfaceOrientations に従わない）。
+    /// 実測（2026-09-21、sim）:
+    /// - 内側（open）= regular×regular → wide
+    /// - 外側（closed）= **h-compact / v-regular**（従来 iPhone の portrait と同型。orientation ではなく size class で判断 = §5.2）
+    /// orientation 判定に置換する（内側は `supportedInterfaceOrientations` に従わない）。
     private var layoutJudgement: String {
         switch (hClass, vClass) {
         case (.regular, .regular):
             return "wide / inner-like（2 面レイアウト可用）"
-        case (.regular, .compact):
-            return "portrait（従来 iPhone）"
-        case (.compact, .compact):
-            return "narrow / outer-like（閉じた外側）"
+        case (.compact, .regular):
+            return "narrow / outer-like（閉じた外側 = 従来 iPhone portrait）"
+        case (.regular, .compact), (.compact, .compact):
+            return "従来 iPhone（landscape 側。Duo では未観測）"
         default:
             return "other"
         }

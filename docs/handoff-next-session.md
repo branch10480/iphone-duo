@@ -12,7 +12,7 @@
 - iPhone Duo シミュレータ（iOS 27.1、`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、起動中）で起動し全タブ巡回。クラッシュなし。
 - **§6 の各ポーズの観測・内側解像度実測は完了（2026-09-21 後段）**。観測値は下「このセッション（続き）でやったこと」6〜9 と「内側ディスプレイ実測値」。
   - 残（実機のみ）: 本体カメラの撮影 / StandBy / アプリエクステンション。`CameraCaptureAccessory` の**可用性（pose 依存）とテレプロンプタの外側描画はシミュレータで確認済み**（下 10〜11）。
-- **現在 pose = closed、orientation = portrait**（最終に `simctl shutdown`+`boot` でリセット、アプリは `com.branch10480.duolab` で起動済み）。
+- **現在 pose = closed、orientation = portrait**（`simctl shutdown`+`boot` でリセット後、アプリは `com.branch10480.duolab` で起動済み・closed 外側表示・size class 判定「narrow / outer-like」表示確認済み、下 14）。
 
 ## 内側ディスプレイ実測値（確定）
 
@@ -93,12 +93,34 @@
    - `openWindow(id: "companion")` 要求は **open 時（内側）でもサイレント無視**（新規ウィンドウは 1 つのまま）。外側（closed）も不可。
    - UIKit の `UIWindowScene.ActivationAction`（alternate = "Window unavailable here"）はメニューから手動 press できず、`alternate` のトリガーは未確認（実機で）。
 
+12. **Vertical Bar（Bar）の pose 依存検証（2026-09-21 後段・確定）**
+   - **`verticalBarEdge`（UIKit `registerForTraitChanges`）は open（内側）でも closed（外側）でも `trailing`**。pose 非依存＝SDK ヘッダ（`UIVerticalBarEdge.h`：「縦バーを使う size class/orientation なら trailing、使わない context なら unspecified」）と整合。open⇄closed 遷移で trait 通知は発生するが値は不変。
+   - **opt-in（`axisBehavior(.verticalPreferred)`）は pose 非依存で効く**: closed（外側）・open（内側）**両方のディスプレイでツールバー項目が側面に縦積み**（inkmap のピクセル判定で左右端の縦積みアイコンを視覚確定。`vBar edge` と一致）。
+   - **opt-out（`toolbarVerticalBehavior(.disabled)`）で縦バーが抑制され、項目がトップバー（横）へ復帰**（CheckBox press で `val 0→1`、操作成功。DeviceHub ミラーの CheckBox は内外シーンで 2 枚存在し needle 一致で両方に押すので、probe2 に `one`（先頭 1 件のみ）モードを追加して単一 press で検証）。
+   - **`fold` の別角度**（`partially open` の別のヒンジ角度）は未観測（`Book` = 128° のみ）。実機か DeviceHub の別の制御で。
+13. **Two Pane の外側（closed）挙動の再確認（2026-09-21 後段）**
+   - **closed（外側）split（`.split.axes(.vertical)`）**: primary（Now Playing @90,973）+ secondary（Up Next @23,1019、1–4）の**上下両方を表示**（＝§8 の内側 open split・secondary 非表示と対照、pose 依存で逆転を再確認）。
+   - **closed（外側）overlay**: secondary（上 @810）/ primary（下 @1077）の**上下逆転**で表示。`zIndex 0`（overlay の内側 zIndex 値は pose 遷移で変化、handoff §8 と整合）。
+   - 内側 open の overlay 値（zIndex バッジ）の re-verify は未（前セッション値のみ）。
+14. **safe area / size class / concentricity の pose 検証 + size class 判定のコード修正（2026-09-21 後段〜22）**
+   - **safe area insets（T82 / R84 / B34 / L 0）は pose・ディスプレイ非依存の定数**（fresh に sim リセットして closed 外側から初回起動でも、open 内側と同一値。前セッションの「外側 reattach 乖離」解釈は不成立→内外で同一 insets）。
+   - **corner radii は pose 依存: open（内側）= BL 21 / closed（外側）= all 0**（`concentricCornerRadii`、`ConcentricRectangle` 相当の SwiftUI 値）。
+   - **size class**: open 内側 = regular×regular（判定「wide / inner-like」）、closed 外側 = **h-compact / v-regular**（= 従来 iPhone の portrait と同型、orientation 非依存で §5.2 整合）。**外側は `.compact/.regular` であり `.compact/.compact` ではない**（前セッションの handoff 記載「外側 h-compact/v-regular」と一致）。
+   - **コード修正（コミット）**: `OverviewPage.layoutJudgement` の switch が `(.compact, .regular)` case を持たず外側で「other」と表示していた → `(.compact, .regular)` =「narrow / outer-like（閉じた外側 = 従来 iPhone portrait）」、`(.regular, .compact)/(.compact, .compact)` =「従来 iPhone（landscape 側。Duo では未観測）」に修正。**rebuild → 起動 → closed 外側で「narrow / outer-like（…）」表示を確認済み**（pid 10533、hinge 0°）。
+   - `logical`（`GeometryReader` の `proxy.size`）は **safe area 済み bounds**（open = 867×553pt = フルフレーム 951×669pt から R84/T82/B34 を控除）。前セッションの「951×669pt」記録はフルフレーム値と読み（ラベルの位置が違う）。両方とも 3.00x 照合 OK。
+15. **Hinge の pose 遷移時の癖（2026-09-21 後段・確定）**
+   - **fresh 起動の closed = `closed / 0.00 rad`（一貫）**、open = `fully open / 3.14 rad`（devicectl readback と一致）。
+   - **open→closed 遷移直後は `closed`（status は最終値）/ `1.40 rad`（angle は途中角度 ≈80°）の一時的な不整合**が観測。`UIHingeInteraction` の update が遷移中に status と angle が別々に届く（Tech Talk の「status を優先」原則を実証）。
+
 ## 残作業（次のセッション）
 
-1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9）。外側（narrow・closed）での Two Pane（下 9）・size class（下 11）・`fold` は Book（半開）で観測済み、`fold` の別角度は実機。
-2. ~~内側ディスプレイの論理解像度をシミュレータ実測~~ **完了**（「内側ディスプレイ実測値」：669×951pt @ 3.00x）。
-3. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）。simctl/devicectl に CLI 経路がなく GUI のみ（AX 経路は下 6 で確立済み）→ 実機で確認。
-4. ~~`CameraCaptureAccessory` の可用性とテレプロンプタ外側描画~~ **sim で確認済み**（下 10）。残: 本体カメラの撮影・`onAvailabilityChange` の実機カメラ方向・**手動 pose 変化で availability が変化するか**（sim では pose で確認）は実機。
+1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9・12〜14）。`fold` の別角度は未（Book=128° のみ、実機 or DeviceHub の別制御）。
+2. ~~内側ディスプレイの論理解像度をシミュレータ実測~~ **完了**（「内側ディスプレイ実測値」：フルフレーム 669×951pt / safe area 済み 611×835pt @ 3.00x、下 14）。
+3. ~~Bar（縦バー）タブと UIKit タブの実表示値~~ **完了**（下 12・15: `vBar edge: trailing` は open/closed 両 pose、opt-in/opt-out の描画、hinge の遷移癖）。
+4. ~~size class 判定（外側 `.compact/.regular`）~~ **完了・コード修正済み**（下 14: 外側 = h-compact/v-regular = 従来 iPhone portrait 同型、判定 switch を修正して「narrow / outer-like」表示を確認）。
+5. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）→ 実機で確認。
+6. ~~`CameraCaptureAccessory` の可用性とテレプロンプタ外側描画~~ **sim で確認済み**（下 10）。残: 本体カメラの撮影・`onAvailabilityChange` の実機カメラ方向・**手動 pose 変化で availability が変化するか**は実機。
+7. **未の細部**: open（内側）overlay の `zIndex` バッジ値の re-verify（前セッション値のみ）・`Rotate Right` 経由の landscape での safe area / 縦バー再確認（orientation 依存の側面）・concentricity の視覚（値は下 14、描画は未視認）。
 
 ## 次のセッションの注意点（ハマり所・確定済み）
 
@@ -109,6 +131,8 @@
 - **seed sandbox の GUI 制約**: `open` / `osascript` / `screencapture` / `launchctl asuser` は `Operation not permitted`。`-disable-sandbox` バイナリ内でも子プロセス spawn すると同じ（seatbelt の exec 制限）。**in-process の AX・CGWindowList・`Process().run`（`/bin/zsh` 等）は通る**。`shortcuts list/run` は通常 bash でも動く。
 - **seed のセッション jsonl は sandbox から読めない**（`seed/sessions` は read deny、`?` パーミション）。引き継ぎは要約 + この handoff に任せる。
 - **ビルドは必ず `OTHER_SWIFT_FLAGS=-disable-sandbox`**（§1 を参照）。`swiftc` 自前ビルド時は `-module-cache-path <cwd配下>`・`TMPDIR <cwd配下>`。
+- **`xcb_session_set_defaults` は値を明示して渡す**（`profile`+`persist` のみでは `extraArgs`/`bundleId` が空で上書きされる）。development.md の JSON 例どおり `extraArgs`・`bundleId` を値として渡す。**2026-09-22 の現状で `(default)` profile が完全**（extraArgs 2 本・bundleId・env。`xcb_session_use_defaults_profile({global:true})` で切替→ビルド成功）。duolab profile は値が渡らず毎回 1 本/unset に収まる現象が継続中→ビルドは `(default)` を使う。
+- **`.tmpx/axtest/` の自前ツール**（`-disable-sandbox` で自前コンパイル、gitignore 済み）: `probe2`（`list|reopen|axtree|click|axpress <pid> [needle] [one]|shell`。**`one` = needle 一致の先頭 1 件のみ press**。DeviceHub ミラーは内外シーンで同文字列が 2 枚なのでトグル操作に必須）、`axval`（value 付き AX ダンプ）、`inkmap`（ピクセル暗度マップ、スクショ png/jpg の左右端・上下バーの配置を視覚判定）、`px`/`boxavg`/`orange`（領域平均・色判定）、`mcache/`（module cache）。自前ビルドは `TMPDIR=<cwd配下>`・`-module-cache-path mcache`。
 - **`xcb_session_set_defaults` の部分更新で `extraArgs`（配列）が古い値に置き換わる**ことがある。毎回**全キー（env・extraArgs・persist）を一緒に渡す**。
 - **この Mac に 2 つの Xcode がある。** `xcode-select` 既定 `/Applications/Xcode_27_1.app`（Duo 対応）。SDK パスは必ず `Xcode_27_1.app` 配下。
 - **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否）。ビルドは xcb。`xcrun` の cache ファイル（`xcrun_db-*`）は拒否されるが無害（warning）。

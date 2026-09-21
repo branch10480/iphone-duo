@@ -34,7 +34,11 @@
    プロジェクトの絶対パス、scheme、実在するsimulator ID、リポジトリ内のDerivedDataを指定する。
    対応するXcodeを使うことも確認する。このMacでは `/Applications/Xcode_27_1.app/Contents/Developer`
    が存在することを2026-09-21に確認した。環境の指定方法はtoolのschemaに従う。
+   `(default)` と `duolab` は別の設定。使うprofileを1つ選び、変更する値も明示して渡す。
+   `profile` と `persist` だけでは別profileの設定はコピーされない。
    部分更新で配列設定を失わないよう、既存設定を確認し必要な環境・追加引数も保持する。
+   更新後はもう一度 `xcb_session_show_defaults` で**同じprofile**の値を確認してからビルドする。
+   設定toolを使い、稼働中に `.xcodebuildmcp/config.yaml` を直接書き換えて反映を期待しない。
 5. **`xcb_build_sim` でビルドする。** 成功を確認してから `xcb_build_run_sim`、または
    `xcb_get_sim_app_path` → `xcb_install_app_sim` → `xcb_launch_app_sim` で起動する。
    アプリパスは取得結果を使い、DerivedData内のパスを推測しない。
@@ -56,7 +60,15 @@ MCP失敗時の既定対応にしない。まず失敗した段階と理由を�
 `OTHER_SWIFT_FLAGS=-disable-sandbox` は、過去にseed環境で必要だった**Swiftコンパイラ向け**の設定。
 seed全体のsandboxを解除する指示ではない。通常のXcodeに必須と決めつけず、共有の
 `project.yml` / pbxprojへ恒久追加しない。再利用するならMCPのmachine-localな設定へ置く。
-ハーネス側が注入する追加引数もあるため、既存引数を上書きして消さない。
+この症状を確認し、使用中のprofileが `duolab` で、保持すべき引数がこの2つだけなら、
+`xcb_session_set_defaults` へ次のように値を明示する。他の必要な引数があれば配列に残す。
+
+```json
+{"profile":"duolab","extraArgs":["-IDEPackageSupportDisableManifestSandbox=YES","OTHER_SWIFT_FLAGS=-disable-sandbox"],"persist":true}
+```
+
+ハーネスはSwiftPM向けの引数をビルド実行時に足す。設定更新時には自動注入しない。
+成功メッセージだけで終えず、同じprofileの実効値を確認してからビルドを試す。
 
 検索や診断ではstderrと終了コードを残す。`rg` の一致なし、ファイル不在、起動失敗、
 権限拒否は別の結果。エラーを捨てたコマンドのexit 0を成功の根拠にしない。
