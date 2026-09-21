@@ -7,6 +7,8 @@ struct OverviewPage: View {
     @Environment(\.horizontalSizeClass) private var hClass
     @Environment(\.verticalSizeClass) private var vClass
     @Environment(\.displayScale) private var displayScale   // UIScreen.main.scale の置換先
+    @State private var deviceOrientation = UIDevice.current.orientation
+    @State private var interfaceOrientation = "n/a"
 
     var body: some View {
         NavigationStack {
@@ -27,6 +29,9 @@ struct OverviewPage: View {
                         // 左右の inset が等しいと仮定しない（各辺を独立に処理 = §5.6）
                         KeyValue("safeArea", String(format: "T %.0f / R %.0f / B %.0f / L %.0f",
                                                     safe.top, safe.trailing, safe.bottom, safe.leading))
+                        // safeArea の依存軸の分離用（orientation の報告値）
+                        KeyValue("orientation", deviceOrientation.rawValueLabel)
+                        KeyValue("ifaceOrient", interfaceOrientation)
                     }
                     GroupBox("Concentricity（角の追従）") {
                         if let radii {
@@ -44,11 +49,25 @@ struct OverviewPage: View {
             }
             .navigationTitle("Overview")
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            updateOrientation()
+        }
+        .onAppear { updateOrientation() }
+    }
+
+    /// 現在の orientation を報告値に反映する。
+    private func updateOrientation() {
+        deviceOrientation = UIDevice.current.orientation
+        if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            interfaceOrientation = scene.interfaceOrientation.label
+        } else {
+            interfaceOrientation = "no-scene"
+        }
     }
 
     /// 実測（2026-09-21、sim）:
     /// - 内側（open）= regular×regular → wide
-    /// - 外側（closed）= **h-compact / v-regular**（従来 iPhone の portrait と同型。orientation ではなく size class で判断 = §5.2）
+    /// - 外側（closed）= **h-compact / v-regular**（従来 iPhone の portrait 同型。orientation ではなく size class で判断 = §5.2）
     /// orientation 判定に置換する（内側は `supportedInterfaceOrientations` に従わない）。
     private var layoutJudgement: String {
         switch (hClass, vClass) {
@@ -60,6 +79,34 @@ struct OverviewPage: View {
             return "従来 iPhone（landscape 側。Duo では未観測）"
         default:
             return "other"
+        }
+    }
+}
+
+extension UIDeviceOrientation {
+    var rawValueLabel: String {
+        switch self {
+        case .unknown: return "unknown"
+        case .faceUp: return "faceUp"
+        case .faceDown: return "faceDown"
+        case .portrait: return "portrait"
+        case .portraitUpsideDown: return "portraitUpsideDown"
+        case .landscapeLeft: return "landscapeLeft"
+        case .landscapeRight: return "landscapeRight"
+        @unknown default: return "raw(\(rawValue))"
+        }
+    }
+}
+
+extension UIInterfaceOrientation {
+    var label: String {
+        switch self {
+        case .unknown: return "unknown"
+        case .portrait: return "portrait"
+        case .portraitUpsideDown: return "portraitUpsideDown"
+        case .landscapeLeft: return "landscapeLeft"
+        case .landscapeRight: return "landscapeRight"
+        @unknown default: return "raw(\(rawValue))"
         }
     }
 }

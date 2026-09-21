@@ -1,8 +1,20 @@
 import SwiftUI
+import UIKit
+
+final class DuoLabDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // orientation 変化通知の有効化（OverviewPage が safeArea の依存軸として観測用）
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        return true
+    }
+}
 
 @main
 @available(iOS 27.1, *)
 struct DuoLabApp: App {
+    @UIApplicationDelegateAdaptor(DuoLabDelegate.self) private var delegate
+
     var body: some Scene {
         WindowGroup {
             RootView()

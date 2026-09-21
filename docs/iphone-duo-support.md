@@ -31,10 +31,10 @@
 | 対角 | 7.6-inch（規格では 7.58"） | 5.4-inch（規格では 5.36"） |
 | 物理ピクセル（Apple 仕様） | 1878 × 2670 px、430 ppi | 1398 × 2034 px、460 ppi |
 | シミュレータのフレームバッファ【SDK】 | 2007 × 2853 px @ 3x = **669 × 951 pt**（`primary-1`、nativeRotation 270） | 1398 × 2034 px @ 3x = **466 × 678 pt**（`primary`） |
-| バッファ方向（実測・9/22） | **pose と orientation の両方に依存**: closed=2007×2853（portrait）、open+orientation=portrait=2853×2007（landscape）、open+landscape=2007×2853。DeviceHub `Rotate Right`（90° ずつ）で反転 | portrait=1398×2034 / landscape=2034×1398。内外とも `Rotate Right` で反転（[引き継ぎ §16](handoff-next-session.md)） |
+| バッファ方向（実測・9/22） | **pose と orientation の両方に依存**（9/22 で 360° サイクルを再検証）: open 系は 90° ごとに交互反転（0°=2853×2007 / 90°=2007×2853 / 180°=2853×2007 = landscape→portrait→landscape、`Rotate Right` は cumulative 90°）、closed 系は外側バッファが 180° で landscape にクランプ（= `project.yml` の `UISupportedInterfaceOrientations` に整合）。orientation 出発は portrait | portrait=1398×2034 / landscape=2034×1398。内外とも `Rotate Right` で反転（[引き継ぎ §16](handoff-next-session.md)） |
 | 特徴 | ナノテクスチャ・アンチグレア、画面下 FaceTime カメラ（under-display） | iPhone 18 Pro 画面の 90% 相当 |
 
-> **方向の判別**: バッファ方向は `simctl io screenshot --display=primary[-1]` の出力を `file` で見る（px 数）。`simctl io enumerate` は解像度数値を出さない。pose（`probe2 axpress`）と orientation（`Rotate Right`）は独立操作だが、**バッファ方向・size class・corner radius は orientation に依存、safe area insets だけ非依存の定数**（9/22 実測、[引き継ぎ §16](handoff-next-session.md)）。
+> **方向の判別**: バッファ方向は `simctl io screenshot --display=primary[-1]` の出力を `file` で見る（px 数）。`simctl io enumerate` は解像度数値を出さない。pose（`probe2 axpress`）と orientation（`Rotate Right`）は独立操作だが、**バッファ方向・size class・corner radius・safe area insets はいずれも orientation（logical 形状）に依存**（safe area は pose 非依存、[引き継ぎ §16](handoff-next-session.md)）。
 
 > ⚠️ **要実機確認**: 内側の論理解像度が「シミュレータ 669×951 pt」に対し「物理 1878×2670 px（3x 換算で 626×890 pt）」と**約 7% ずれる**。報道（blakecrosley）は「内側は 669×951 pt でレンダリングし、各辺約 6.4% スケールダウンして 1878×2670 になる（Plus 世代と同様の構成）」と推測。固定 px・pt での比較は避ける（§6 の原則）。
 
@@ -275,15 +275,15 @@ let coordinator = AVCaptureDeviceDirectionCoordinator(
 1. **iOS 27.1 SDK でビルド**（画面端まで＋縦バーが有効になる）。
 2. **size class を使う、interface orientation は使わない。**
    - 外側ディスプレイ: 従来 iPhone と同じ（portrait=compact×regular、landscape=compact×compact。9/22 実測で orientation 依存を確認、[引き継ぎ §16](handoff-next-session.md)）。
-   - **内側ディスプレイ: regular×regular**（sidebar 等を表示できる余白。9/22 は open のみで確認、orientation 非依存かは未確定）。
+   - **内側ディスプレイ: regular×regular**（orientation 非依存。9/22 で open+portrait / open+landscape いずれでも regular×regular を確認）。
    - **内側は `supportedInterfaceOrientations` に従わない** → 必ず size class で判断。
 3. **main screen を参照しない。** 2 ディスプレイでは曖昧（将来非推奨予定）。
    - `environment` / `traitCollection` / シーンの bounds を使う。
    - 画面にアクセスが必要なら `window?.windowScene?.screen`。
    - `UIScreen.main.scale` → **`traitCollection.displayScale`** に置換。
-4. **角に合わせる**: iOS 26 の Concentricity API（SwiftUI `ConcentricRectangle`、UIKit `UICornerConfiguration`）。9/22 実測: corner radius は **orientation 依存**（外側 portrait=all 0 → landscape=BL25）。pose 依存ではなく orientation 依存（[引き継ぎ §16](handoff-next-session.md)）。
+4. **角に合わせる**: iOS 26 の Concentricity API（SwiftUI `ConcentricRectangle`、UIKit `UICornerConfiguration`）。9/22 実測: corner radius は **pose × orientation の両方に依存**（外側 = portrait all 0 / landscape BL25、内側 = portrait all 0 / landscape BL21。同 pose 内で portrait→landscape で変化、内外で半径値が異なる）。[引き継ぎ §16](handoff-next-session.md)
 5. **標準ナビゲーションを採用**: NavigationSplitView / UISplitViewController、TabView / UITabBarController は全ポーズで適応（閉じたとき列は折り畳み、開いたときタイル or 重ね合わせ）。内側で sidebar: `.defaultTabBarPlacement(.sidebar)` / `tabBarController.sidebar.preferredPlacement = .sidebar`。
-6. **safe area を尊重し、非対称を扱う。**前景（操作系）は safe area 内、背景（アートワーク等）は `.ignoresSafeArea()` / `view.bounds` で延伸。**左右の inset が等しいと仮定しない（各辺を独立に処理）→ Split View でテスト。**9/22 実測では内外・pose・orientation いずれでも inset が不変の定数（T82/R84/B34/L0）だった → 各辺の非対称処理は引き続き必須（[引き継ぎ §16](handoff-next-session.md)）。
+6. **safe area を尊重し、非対称を扱う。**前景（操作系）は safe area 内、背景（アートワーク等）は `.ignoresSafeArea()` / `view.bounds` で延伸。**左右の inset が等しいと仮定しない（各辺を独立に処理）→ Split View でテスト。**9/22 実測では **safe area insets は pose 非依存だが orientation（logical 形状）に依存**: portrait logical（669×734pt）= T134/R0/B83/L0、landscape logical（594×350pt）= T82/R84/B34/L0（内外共通）。→ 各辺の非対称処理は引き続き必須（[引き継ぎ §16](handoff-next-session.md)）。
 7. **ヒンジはインタラクション用、レイアウトは Arrangement/Reserved Region**（§4）。
 8. **Split View（50/50）と複数ウィンドウ**を前提に（iPad リサイズ対応済みなら好調なスタート）。
 

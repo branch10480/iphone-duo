@@ -13,22 +13,22 @@
 - **§6 の各ポーズの観測・内外解像度実測は完了（9/21）**。観測値は下 6〜9 と「内側ディスプレイ実測値」。
   - 残（実機のみ）: 本体カメラの撮影 / StandBy / アプリエクステンション。`CameraCaptureAccessory` の可用性（pose 依存）とテレプロンプタ外側描画はシミュレータで確認済み（下 10〜11）。
 - **現在 pose = closed、orientation = landscape**（9/22、`Rotate Right` 経由で 90° 回転、下 16）、アプリ `com.branch10480.duolab`（pid 35886、fresh `boot` 後起動）は外側表示。DeviceHub は pid 2173 で起動中（pose ボタン 4 個に到達可能、下 6）。
-- **9/22 で残作業 2 のシミュレータ範囲 3 項目の 2 を確定**（overlay zIndex re-verify / Rotate Right 経由の orientation 依存）。下 16・17。
+- **9/22 で残作業 2 のシミュレータ範囲を確定**（下 16・17・18）、**さらに 360° サイクルの live 再検証（下 19）で safeArea の logical 形状依存・corner の pose×orientation 依存を確定**（要約の「safeArea 不変定数」を修正）＋ open+landscape の MCP スクショ寸法 1 枚取得。
   - **`fold` の別角度は残作業**（DeviceHub の別制御なし・下 18 → 実機へ）。
 
 ## 内側ディスプレイ実測値（確定）
 
 | 項目 | 値 | 出典 |
 |---|---|---|
-| 内側フレームバッファ | pose 依存（下 16 で修正）: open+orientation=portrait = 2853×2007 / open+landscape = 2007×2853 / closed = 2007×2853（`--display=primary-1`） | `simctl io screenshot` の `file` |
-| 内側論理 | **669 × 951 pt**（orientation=portrait のバッファ方向と同一向き）/ 3.00x | アプリ Overview |
+| 内側フレームバッファ | **pose + orientation の両方に依存**（下 16・19）: open 系 = orientation=portrait 2853×2007（landscape）/ landscape 2007×2853（交互反転、90° cumulative）、closed = 2007×2853（portrait）（`--display=primary-1`） | `simctl io screenshot` の `file` |
+| 内側論理（safe area 済み） | portrait（2007×2853 バッファ）= **669 × 734 pt** / landscape（2853×2007 バッファ）= **867 × 553 pt**。669×951pt はフルフレーム値（safe area 前、§14）。3.00x | アプリ Overview |
 | 内側 scale | **3.00x**（`traitCollection.displayScale`） | アプリ Overview |
-| 外側フレームバッファ | pose + orientation 依存（下 16）: closed+portrait = 1398×2034 / closed+landscape = 2034×1398（`--display=primary`） | `simctl io screenshot` の `file` |
-| 外側論理 | portrait **382 × 562 pt** / landscape **594 × 350 pt**（= safe area 済み） | アプリ Overview |
-| safeArea（内外共通） | **T 82 / R 84 / B 34 / L 0**（orientation・pose・内外で不変 = 定数。下 16） | アプリ Overview |
+| 外側フレームバッファ | **pose + orientation の両方に依存**（下 16・19）: closed+portrait = 1398×2034 / closed+landscape = 2034×1398 / open・book 時 = 2034×1398（全黒だが landscape バッファ）。orientation 出発 portrait（fresh） | `simctl io screenshot` の `file` |
+| 外側論理（safe area 済み） | portrait **382 × 562 pt** / landscape **594 × 350 pt**（safe area 込み。orientation 依存） | アプリ Overview |
+| safeArea（内外共通） | **pose 非依存だが orientation（logical 形状）に依存（下 19 で修正）**: portrait logical = **T 134 / R 0 / B 83 / L 0**、landscape logical = **T 82 / R 84 / B 34 / L 0**。内外共通、値は pose 不変 | アプリ Overview |
 | 外側 size class | portrait **h-compact / v-regular**（従来 iPhone portrait 同型）/ landscape **h-compact / v-compact**（従来 iPhone landscape 同型）。orientation 依存（下 16） | アプリ Overview |
 | 内側 size class | regular × regular | アプリ Overview |
-| corner radius | **orientation 依存（下 16 で修正）**: 外側 = portrait all 0 / landscape **BL 25**。内側(open,landscape) = BL 21 | アプリ Overview |
+| corner radius | **pose × orientation 両方に依存（下 19）**: 外側 = portrait all 0 / landscape **BL 25**、内側 = portrait all 0 / landscape **BL 21**（内外で半径値が異なる） | アプリ Overview |
 
 照合: landscape 外側フルフレーム `2034/3 = 678 × 2034→1398/3 = 466pt`、safe area 控除（T82/R84/B34/L0）で論理 `594 × 350pt`（= 表示値と一致）。**`--display=primary` = 外側、`--display=primary-1` = 内側**。
 
@@ -109,7 +109,7 @@
    - **corner radii は pose 依存: open（内側）= BL 21 / closed（外側）= all 0**（`concentricCornerRadii`、`ConcentricRectangle` 相当の SwiftUI 値）。
    - **size class**: open 内側 = regular×regular（判定「wide / inner-like」）、closed 外側（orientation=portrait の時点）= **h-compact / v-regular**（= 従来 iPhone の portrait と同型）。**9/22 修正**: orientation=landscape 時は外側 = **h-compact / v-compact**（従来 iPhone landscape 同型）に変化（下 16）→ **size class は orientation 依存**（§5.2 の「size class 判定で orientation 置き換え」と整合）。
    - **コード修正（コミット `0fa2985`）**: `OverviewPage.layoutJudgement` の switch が `(.compact, .regular)` case を持たず外側で「other」と表示していた → `(.compact, .regular)` =「narrow / outer-like（閉じた外側 = 従来 iPhone portrait）」、`(.regular, .compact)/(.compact, .compact)` =「従来 iPhone（landscape 側。Duo では未観測）」に修正。**rebuild → 起動 → closed 外側で「narrow / outer-like（…）」表示を確認済み**（9/21、pid 10533、hinge 0°）。
-   - `logical`（`GeometryReader` の `proxy.size`）は **safe area 済み bounds**（open = 867×553pt = フルフレーム 951×669pt から R84/T82/B34 を控除）。前セッションの「951×669pt」記録はフルフレーム値と読み（ラベルの位置が違う）。両方とも 3.00x 照合 OK。
+   - `logical`（`GeometryReader` の `proxy.size`）は **safe area 済み bounds**（open+landscape = 867×553pt、open+portrait = 669×734pt = バッファ 951×669pt / 669×951pt から各 safeArea を控除、下 19）。前セッションの「951×669pt」記録はフルフレーム値（safe area 前）。3.00x 照合 OK。
    - **9/22 の修正**: corner radius は pose 依存では**なく orientation 依存**（外側: portrait all 0 → landscape BL 25、下 16）。safe area insets は pose・ディスプレイ・**orientation** いずれも非依存の定数（下 16 で再確認）。
 15. **Hinge の pose 遷移時の癖（2026-09-21 後段・確定）**
    - **fresh 起動の closed = `closed / 0.00 rad`（一貫）**、open = `fully open / 3.14 rad`（devicectl readback と一致）。
@@ -124,14 +124,36 @@
    - **`Rotate Right` は cumulative（90° ずつ回転）**：portrait → 1 回 press → landscape、2 回 press → **landscape のまま**（9/22 実測、MCP スクショ 800×562）。portrait 復元は 4 回転（または `simctl shutdown`+`boot`）。→ 前セッションの「`orientation set` で戻らない」は `simctl orientation set` の ACK/get 乖離の話であり、**DeviceHub の `Rotate Right`（GUI）は 90° ずつの回転操作**。
    - **orientation = landscape 時のタブバー**（外側 `h-compact/v-compact`）: 幅の制約で 7 タブ → **5 表示＋「More」に集約**。`probe2 axpress 2173 "More" one` → `AXMenuButton`（@1120,89）が展開し、`Bar` / `Scenes` / `UIKit` が `AXButton` 一覧。`axpress "Bar" one` で Bar ページ到達（`Disable vertical bar（opt-out）` CheckBox 存在）。
    - **Bar（landscape 外側）の縦バー**（inkmap）: ツールバー項目は**上バー（横）**に配置され、content 右端にも縦積みの icon が確認（opt-in の縦積み項目と推定）。portrait 外側（`h-compact/v-regular`）・open 内側（regular×regular）で確認済みの opt-in の side 縦積みと併せ、**orientation 単独（landscape）では opt-in の side 縦積みへ移行せず上バーのまま**（= §12 の pose 非依存・orientation でも非依存を再確認）。
-   - **結論**: フレームバッファ方向・size class・corner は **orientation に依存**、safe area insets だけ **orientation 非依存の定数**。前セッションの「orientation と無関係」の記載は誤り。
+   - **結論（下 19 で更新）**: フレームバッファ方向・size class・corner・**safeArea** はいずれも **orientation（logical 形状）に依存**。前セッションの「orientation と無関係」の記載は誤り（下 19 で safeArea の portrait/landscape 2 値を確定）。
 17. **overlay zIndex の pose 依存 re-verify（2026-09-22・確定）** — *残作業 2 の 1 項目を完了*
    - **closed（外側）overlay = `zIndex 0`**、**open（内側）overlay = `zIndex 0`**（DeviceHub ミラーの `AXStaticText d='zIndex 0'` を各 1 件、`probe2 axtree` で読取。badge は内外で 1 枚のみ表示）。
    - open⇄closed の pose 遷移（直行）で zIndex バッジ値は**不変（0 のまま）**。前セッションの予測「overlay の zIndex は pose 遷移で変化する」に対し、**open⇄closed では不変**を確定。
-   - **残（未判定）: book（半開）経由**の zIndex は未観測（closed→open の直行のみ）。半開で折りたたみ中に変化する可能性は残る（実機 or DeviceHub の Book 経由で要観測）。
+   - **book（半開）経由でも 0 不変（9/22 で確定）**: fresh 起動（closed・orientation=portrait）→ `Book` → `Open` の遷移で、zIndex は **closed / book / open の 3 pose すべて `0`**（各 pose で badge 1 件、`probe2 axtree` の `AXStaticText d='zIndex 0'`。badge 座標のみ pose で移動）。→ **overlay の zIndex は pose 遷移（open⇄closed 直行・book 経由）いずれでも 0 固定**（前セッションの「変化」予測は不成立）。
+   - **付随観測: book（半開）のバッファ方向 = open と同一（内外とも landscape）**: book 時 内側 `2853×2007` / 外側 `2034×1398`（`file` で確定、orientation=portrait 出発）。§16 の pose 依存と整合（closed = 外側表示 portrait バッファ、open/book = 内側表示 landscape バッファ）。
 18. **`fold` の別角度は DeviceHub に専用ボタンなし（2026-09-22・確定）**
    - DeviceHub（9/22、pid 2173）の pose アクションバーは **`Rotate Right` / `Closed` / `Book` / `Open` の 4 ボタンのみ**（`probe2 axtree` 全 tree 検索で `fold` 文字列なし）。
    - → **`fold`（`partially open` の別角度）の別角度は DeviceHub では得られない**（`Book` = 128° のみ）。**実機へ先送り**（§6 の fold ポーズ観測）。
+
+19. **360° サイクルの live 再検証＋safeArea / corner の依存確定（2026-09-22、fresh `boot` 出発）** — *要約の「safeArea 不変定数」を修正*
+   - 経路: `simctl shutdown`+`boot`（fresh = pose=closed・orientation=portrait・外側 portrait バッファ 1398×2034）→ app `xcb_build_run_sim`（`OverviewPage` に `UIDevice.orientation` / `scene.interfaceOrientation` の 2 行＋`DuoLabApp` に orientation 通知有効化の delegate を追加）→ DeviceHub `probe2 axpress`（`Open`/`Closed`/`Rotate Right`）で pose・orientation を切り替え、各状態で `simctl io screenshot` の `file`（バッファ方向）＋ DeviceHub ミラーの AX 値（`logical`/`safeArea`/`corner radii`/`orientation`/`ifaceOrient`）を三重読取。
+   - **safeArea は pose 非依存だが orientation（logical 形状）に依存**（要約・§14・§16 の「内外・pose・orientation いずれも不変の定数 T82/R84/B34/L0」を**修正**）:
+
+     | 状態（pose・orientation） | バッファ方向（`file`） | logical（safe area 済み） | safeArea | corner |
+     |---|---|---|---|---|
+     | closed + 0°（portrait） | 外 1398×2034 | 382×562 | **T82 / R84 / B34 / L0** | all 0 |
+     | closed + 90°（landscape） | 外 2034×1398 | 594×350 | **T82 / R84 / B34 / L0** | **BL 25** |
+     | open + 0°（landscape） | 内 2853×2007 | 867×553 | **T82 / R84 / B34 / L0** | **BL 21** |
+     | open + 90°（portrait） | 内 2007×2853 | 669×734 | **T134 / R0 / B83 / L0** | all 0 |
+     | open + 180°（landscape） | 内 2853×2007 | 867×553 | **T82 / R84 / B34 / L0** | **BL 21** |
+
+     → safeArea の値は **logical 形状**で決まる（portrait 形状 669×734 = T134/R0/B83/L0、landscape 形状 = T82/R84/B34/L0）。内外共通、pose（閉じる/開ける）では値が変わらない。前セッションは landscape 側しか観測していなかった。
+   - **corner radius は pose × orientation の両方に依存**（要約「内側 open BL21 不変」を修正）: 外側 = portrait all 0 / landscape BL25、内側 = portrait all 0 / landscape BL21（内外で半径値が異なる、同 pose 内で orientation 変化で変化する）。
+   - **size class は pose 依存のみ**（orientation 非依存）: 内側 = regular×regular（open の portrait / landscape 両方）、外側 = portrait comp/regular / landscape comp/comp（§16 と整合）。
+   - **orientation 報告値**（今回 `OverviewPage` に追加）: landscape 時は `UIDevice.current.orientation` = **landscapeRight**、`scene.interfaceOrientation` = **landscapeLeft**（両者が異なるケースを実観）。app 側の safeArea（`GeometryReader.safeAreaInsets`）はこの orientation に連動する。
+   - **バッファ方向 = pose × orientation**（要約と整合・再確認）: open 系 = 90° ごとに交互反転（0°=内2853×2007 / 90°=2007×2853 / 180°=2853×2007）、closed 系 = portrait 1398×2034 → 90°=2034×1398（クランプ）。open+0°/180° = landscape バッファ、90° = portrait バッファ。
+   - **MCP スクショ（`xcb_screenshot`）の app ウィンドウ形状**（要約の未反映ギャップを解消）: open+90°（portrait logical 669×734）= **550×800px・portrait アスペクト**（全黒=外側 primary 側のミラー）、open+landscape（logical 867×553）= **800×550px・landscape アスペクト**。→ **MCP スクショは app の logical 形状（orientation）に追従**（DeviceHub の物理フレーム自体は portrait の 946×1034 のまま、中身の app 領域のみが回転する）。
+   - **照合**: portrait 内側 `2007/3=669 × 2853/3=951` −(T134+B83) = **669×734**、landscape 内側 `2853/3=951 × 2007/3=669` −(T82+R84+B34) = **867×553**。外側 landscape `2034/3=678 × 1398/3=466` −(T82+R84+B34) = **594×350**。表示値と一致。
+   - **結論（要約の修正）**: フレームバッファ方向・size class・corner・**safeArea** はいずれも **orientation（logical 形状）に依存**。要約の「safeArea だけ orientation 非依存の定数」は**不成立**（safeArea は logical 形状に依存、pose 非依存）。要実機確認: safeArea の portrait/landscape 2 値が実機でも同じか（シミュレータ値）。
 
 ## 残作業（次のセッション）
 
@@ -139,10 +161,10 @@
 2. ~~内側ディスプレイの論理解像度をシミュレータ実測~~ **完了**（「内側ディスプレイ実測値」：669×951pt @ 3.00x、下 14）。
 3. ~~Bar（縦バー）タブと UIKit タブの実表示値~~ **完了**（下 12・15）。
 4. ~~size class 判定（外側 `.compact/.regular`）~~ **完了・コード修正済み**（下 14、`0fa2985`）。
-5. ~~orientation（`Rotate Right`）経由の safe area / 縦バー再確認、concentricity 視覚~~ **完了**（下 16: orientation 依存のバッファ方向・size class・corner 変化、safe area 不変、Bar の landscape 描画、concentricity は BL 25 の値で確認）。
+5. ~~orientation（`Rotate Right`）経由の safe area / 縦バー再確認、concentricity 視覚~~ **完了**（下 16・19: orientation 依存のバッファ方向・size class・corner、safeArea は logical 形状依存（portrait=T134/R0/B83/L0 / landscape=T82/R84/B34/L0、要約の「不変定数」を修正）、MCP スクショ寸法取得）。
 6. ~~open（内側）overlay の zIndex バッジ値の re-verify~~ **完了**（下 17: open=closed=`0`、open⇄closed で不変）。
-7. **`fold` の別角度**（`partially open` の別角度、`Book` = 128° のみ観測）— **DeviceHub に専用ボタンなし（下 18）→ 実機で観測**。
-8. **overlay zIndex が book（半開）経由で変化するか**（下 17: open⇄closed では 0 固定、半開経由は未判定）— 実機 or DeviceHub の `Book` 経由で観測。
+7. **`fold` の別角度**（`partially open` の別角度、`Book` = 128° のみ観測）— **DeviceHub に専用ボタンなし（下 18）→ 実機で観測**。実機で safeArea の portrait/landscape 2 値が同じか（下 19）も併せて確認。
+8. ~~overlay zIndex が book（半開）経由で変化するか~~ **完了（下 17: closed/book/open 3 pose すべて 0、pose 遷移で不変）**。
 9. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）→ 実機で確認。
 10. ~~`CameraCaptureAccessory` の可用性とテレプロンプタ外側描画~~ **sim で確認済み**（下 10）。残: 本体カメラの撮影・`onAvailabilityChange` の実機カメラ方向・手動 pose 変化で availability が変化するかは実機。
 
