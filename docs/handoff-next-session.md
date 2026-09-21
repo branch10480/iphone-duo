@@ -8,21 +8,24 @@
 - §6 の 14 項目を網羅する 7タブ構成（Overview / Hinge / Two Pane / Regions / Bar / Scenes / UIKit）。
 - iPhone Duo シミュレータ（iOS 27.1、`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、起動中）で起動し全タブ巡回。クラッシュなし。
 - **§6 の各ポーズの観測・内側解像度実測は完了（2026-09-21 後段）**。観測値は下「このセッション（続き）でやったこと」6〜9 と「内側ディスプレイ実測値」。
-  - 残: StandBy / アプリエクステンション / `CameraCaptureAccessory`（実機のみ）。
+  - 残（実機のみ）: 本体カメラの撮影 / StandBy / アプリエクステンション。`CameraCaptureAccessory` の**可用性（pose 依存）とテレプロンプタの外側描画はシミュレータで確認済み**（下 10〜11）。
 - **現在 pose = closed、orientation = portrait**（最終に `simctl shutdown`+`boot` でリセット、アプリは `com.branch10480.duolab` で起動済み）。
 
 ## 内側ディスプレイ実測値（確定）
 
 | 項目 | 値 | 出典 |
 |---|---|---|
-| 内側フレームバッファ | **2007 × 2853 px**（`--display=primary-1`、`simctl io enumerate`） | `simctl io enumerate` |
-| 内側論理 | **669 × 951 pt**（アプリ `669 × 734 pt` は safe area 217pt 分を除いた値） | アプリ Overview |
+| 内側フレームバッファ | open: **2853 × 2007 px**（landscape）/ closed: **2007 × 2853 px**（portrait）（`--display=primary-1`） | `simctl io enumerate` |
+| 内側論理 | portrait **669 × 951 pt** / landscape **951 × 669 pt** | アプリ Overview |
 | 内側 scale | **3.00x**（`traitCollection.displayScale`） | アプリ Overview |
-| 外側フレームバッファ | **1398 × 2034 px**（`--display=primary`） | `simctl io enumerate` |
-| 内側 safeArea | T 134 / R 0 / B 83 / L 0（open・portrait） | アプリ Overview |
+| 外側フレームバッファ | **1398 × 2034 px**（portrait・`--display=primary`） | `simctl io enumerate` |
+| 外側論理 | **382 × 562 pt** | アプリ Overview |
+| 内側 safeArea | open(landscape) T 82 / R 84 / B 34 / L 0 | アプリ Overview |
+| 内側 corner radius | BL 21（open、他 0） | アプリ Overview |
 | 内側 size class | regular × regular | アプリ Overview |
+| 外側 size class | horizontal compact / vertical regular | アプリ Overview |
 
-照合: `669pt × 3.00x = 2007px`、`951pt × 3.00x = 2853px`。`--display=primary` = 外側、`--display=primary-1` = 内側。`simctl io enumerate` の `DisplayAdapter.Connected Screens`: `primary`(1398×2034) / `primary-1`(2007×2853) / TVOut(720×480) / wireless0 / resizable(7680×4320)。
+照合: portrait `669pt × 3.00x = 2007px`、landscape `951pt × 3.00x = 2853px`（= framebuffer と一致）。**内側の論理方向は pose 依存: open = landscape（2853×2007）/ closed = portrait（2007×2853）**（orientation=portrait のままで、open 時に landscape になる = 内外 swap による）。`--display=primary` = 外側、`--display=primary-1` = 内側。`simctl io enumerate` の `DisplayAdapter.Connected Screens`: `primary`(1398×2034) / `primary-1`(2007×2853) / TVOut(720×480) / wireless0 / resizable(7680×4320)。
 
 
 ## このセッション（前半・2026-09-20）でやったこと
@@ -78,18 +81,27 @@
    | closed | **0** | 2（active **2**） |
 
    - 折り目（division）は半開（book）のみ active、全開は幅 0・inactive、閉じると領域自体が消える。active 幅分だけ内容は `.offset(x:)` で退避。
+   - **外側（narrow・closed）での Two Pane: primary（Now Playing）+ secondary（Up Next 1–4）の上下両方を表示**（内側 open の split では secondary 非表示 → pose 依存で挙動が逆）。
+10. **`CameraCaptureAccessory`（Scenes）の pose 依存可用性・テレプロンプタ外側描画**
+   - **可用性は pose 依存: open = available / closed = unavailable**（`onAvailabilityChange` の値を AX で読取）。
+   - prompter **on/off で外側ディスプレイの点灯が切り替わる**（on: 平均248=白で点灯 / off: 全黒）→ テレプロンプタが外側（primary）に描画されることを確認。
+   - `sim` の `CameraCaptureAccessory` は pose（= 内外 swap）で可用性が変わり、**実機のカメラスイッチ（`onAvailabilityChange`）とは挙動が違う**。実機ではカメラ方向（`builtInOuter/InnerUltraWideCamera`）で切り替わるはず。
+11. **複数ウィンドウ（companion / ActivationAction）の sim 動作**
+   - `openWindow(id: "companion")` 要求は **open 時（内側）でもサイレント無視**（新規ウィンドウは 1 つのまま）。外側（closed）も不可。
+   - UIKit の `UIWindowScene.ActivationAction`（alternate = "Window unavailable here"）はメニューから手動 press できず、`alternate` のトリガーは未確認（実機で）。
 
 ## 残作業（次のセッション）
 
-1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9）。`fold`（partially open の別角度）・外側（narrow・closed）での Two Pane 動作は未観測。
+1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9）。外側（narrow・closed）での Two Pane（下 9）・size class（下 11）・`fold` は Book（半開）で観測済み、`fold` の別角度は実機。
 2. ~~内側ディスプレイの論理解像度をシミュレータ実測~~ **完了**（「内側ディスプレイ実測値」：669×951pt @ 3.00x）。
 3. **StandBy・アプリエクステンション系は実機**（シミュレータ既知の問題: StandBy 不可、アプリエクステンション大半が実行・デバッグ不可）。simctl/devicectl に CLI 経路がなく GUI のみ（AX 経路は下 6 で確立済み）→ 実機で確認。
-4. **`CameraCaptureAccessory` / テレプロンプタ（外側ディスプレイ）の動作も実機で**（sim `CameraCaptureAccessory` の可用性は未検証）。
+4. ~~`CameraCaptureAccessory` の可用性とテレプロンプタ外側描画~~ **sim で確認済み**（下 10）。残: 本体カメラの撮影・`onAvailabilityChange` の実機カメラ方向・**手動 pose 変化で availability が変化するか**（sim では pose で確認）は実機。
 
 ## 次のセッションの注意点（ハマり所・確定済み）
 
 - **pose 操作は下 6 の AX 経路**。`-disable-sandbox` でコンパイルしたバイナリ（`.tmpx/axtest/probe2`、ソース付き）で、`probe2 axpress <DeviceHub pid> "Open|Book|Closed|Rotate Right"`。
-- **`orientation set` は ACK（`New Device Orientation: portrait`）を返すが `get` は landscape 固定**（app の `UISupportedInterfaceOrientations` に従い、`Rotate Right` 経由で landscape に入ると `set portrait` で戻らない）。**リセットは `simctl shutdown`+`boot` のみ**（→ orientation 初期値 portrait）。orientation 値を安定させたい時はアプリを terminate → launch で portrait に戻りうる（`simctl launch` の bundle id は小文字 `com.branch10480.duolab`）。
+- **`orientation set` は ACK（`New Device Orientation: portrait`）を返すが `get` は landscape 固定**（app の `UISupportedInterfaceOrientations` に従い、`Rotate Right` 経由で landscape に入ると `set portrait` で戻らない）。**リセットは `simctl shutdown`+`boot` のみ**（→ orientation 初期値 portrait）。
+- **orientation は pose と独立**（`Rotate Right` は orientation だけを変え pose は不変）。ただし**内側フレームバッファの方向は pose 依存**（open = landscape / closed = portrait、orientation と無関係）。
 - **`suiatool` はホストに実ファイルなし**（共有キャッシュ `dyld.txt` に `suiatool orientation -h` 等の文字列のみ。`/usr/bin` `/usr/libexec` `/usr/local/bin` / runtime volume `iOS_24A94401` / Xcode app / SharedFrameworks を grep してなし）。spawn 不可 → pose は DeviceHub GUI（AX）の経路で。
 - **seed sandbox の GUI 制約**: `open` / `osascript` / `screencapture` / `launchctl asuser` は `Operation not permitted`。`-disable-sandbox` バイナリ内でも子プロセス spawn すると同じ（seatbelt の exec 制限）。**in-process の AX・CGWindowList・`Process().run`（`/bin/zsh` 等）は通る**。`shortcuts list/run` は通常 bash でも動く。
 - **seed のセッション jsonl は sandbox から読めない**（`seed/sessions` は read deny、`?` パーミション）。引き継ぎは要約 + この handoff に任せる。
@@ -99,7 +111,7 @@
 - **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否）。ビルドは xcb。`xcrun` の cache ファイル（`xcrun_db-*`）は拒否されるが無害（warning）。
 - **`simctl list devices` の UDID を推測しない**（`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、`simctl list` で確認）。`devicectl` はこの UDID をそのまま `--device` で使う。
 - **シミュレータ 2 台**（iOS 27.1）: `6B8C075B-…`（主）、`0F5B43CE-…`。他は iOS 27.0（DuoLab DT 27.1 と非互換）。
-- 内側 `size class` は regular×regular、`supportedInterfaceOrientations` に従わない（orientation 判定は size class に置換）。
+- 内外の size class / 方向: **内側 regular×regular（open = landscape 2853×2007 / closed = portrait 2007×2853）、外側 horizontal compact / vertical regular（portrait 1398×2034）**。orientation 判定は size class に置換（`supportedInterfaceOrientations` 非依存）。
 - ヒンジデータ（angle/status）は**インタラクション用**。レイアウトは Arrangement / Reserved Region。
 - **push は upstream 付きの単独 `git push`**（cd/&&/明示 refspec は素の sandbox に落ちる）。`gh --source/--push` は allowlist 外。
 - **`.tmpx/` は gitignore に追加済み**（調査用ファイル、`dyld.txt` 180MB 等、commit 対象外）。
