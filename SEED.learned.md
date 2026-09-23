@@ -24,3 +24,11 @@
 - 2026-09-23: xcb_build_run_sim 直後に probe2 axpress が pressed:0 を返す（ミラー axtree 未反映）。xcb_wait_for_ui textContains → xcb_tap elementRef が安定
 - 2026-09-23: probe2 axpress「Bar」は DeviceHub メニューの「Show Tab Bar」等 AXMenuItem に先頭一致して誤押下することがある（app 画面は不変のまま）。タブ切り替わったか必ずスクショで確認
 - 2026-09-23: open pose（内外コピーの中心xが負になる側）では DeviceHub ミラーの axpress が外側コピーに落ち、sim 内タブが切り替わらない（pressed:1 なのに画面不変）。open の巡回は sim 本体の xcb_wait_for_ui→xcb_tap、または axpress 後必ずスクショでタブ切替を確認
+- 2026-09-23: git status --porcelain は stat のみ更新（diff が空）でも ' M' を出す。git add -A 後に clean になるだけで、内容差分は無い（SEED.md で観測）
+- 2026-09-23: bash の `open <file>`（ローカル HTML をブラウザで開く）は sandbox で rc126 Operation not permitted。seed は open を実行できないので、ユーザーへ open コマンドの案内で終わりにする
+- 2026-09-23: この sandbox で /usr/bin/open は 126 Operation not permitted で拒否（allowlist 外）。HTML artifact 等は `open "パス"` をユーザーに案内し、! 実行で開かせるのが正。クォート欠落で 126/2 が出る場合もある
+- 2026-09-23: seed の bash で `open <file.html>` は exit 126「Operation not permitted」（sandbox 拒否）で開けない。ユーザーに `! open "..."` で実行させる（`!` 実行の引数は末尾クォートが欠ける場合がある → 欠けたら `"` を追って 2 turn で完結）。ブラウザの見た目自体は seed では見えない
+- 2026-09-24: render_html の offset_y は同一 turn の連続呼び出しで保持されず top に戻ることがある。返却画像の見出しで位置を確認し、ズレていたら offset_y を再調整して再描画する（描画は成功表示される）
+- 2026-09-24: browser_read は file:// URL を拒否（web_extract の URL 規則が file URL にも適用される）。ローカル HTML の見た目確認は render_html 一択
+- 2026-09-24: 「render_html の offset_y が top に戻ることがある」は誤り。正しくは seed 側の bug（`scroll-behavior: smooth` で 0.3 秒後はまだ途中）で、2026-09-24 に修正済み。返答文の「撮影位置 y=…」が実際の位置で、「続きは offset_y=…」を使えば 900 px 刻みで抜けなく見られる
+- 2026-09-24: 「ブラウザの見た目自体は seed では見えない」は誤り。正しくは `render_html {"path": …}` でライト / ダークの絵が見える（2026-09-23 から）。`open` の案内は人が手元で開く用
