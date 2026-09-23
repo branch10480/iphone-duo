@@ -234,3 +234,15 @@
 | 縦バー | `.toolbarVerticalBehavior(.disabled)`、`.toolbarVerticalCompressionBehavior(.prefersTabBar)`、`ToolbarContent.axisBehavior(.verticalPreferred)` | `UITraitCollection.systemTraitsAffectingVerticalBarEdge` + `registerForTraitChanges` |
 | 複数ディスプレイ | `openWindow(id:)`（iOS は非 throw）、`CameraCaptureAccessory` + `.sceneAccessory` + `.onAvailabilityChange` | `UIWindowScene.ActivationAction`（alternate 付き）、`UISceneAccessory` |
 | カメラ方向 | — | `AVCaptureDeviceDirectionCoordinator`（`.builtInOuterUltraWideCamera` 等） |
+
+
+## 2026-09-24 docs/duolab-tabs.html の図検証・修正
+
+- render_html（1280px 固定 viewport）でページ全体を offset_y 巡回し目視確認。
+- **Hinge 半円ゲージの弧の endpoint がキャプション（127.3°）と一致していなかった**（実際は左端から約 53° 分のみ）。endpoint / knob を `(140,20)`（127.3° 相当）に修正し再描画で確認済み。
+- **Regions の `.demo-areas` 図が幅広がりで崩れる**（固定高さ 240px + % 配置が引き伸ばされる）。`max-width: 720px; margin: 0 auto;` を付けて中央寄せ・幅固定にして対応。
+- 幅広検証は doc-max を 1680px にした一時コピー（`.tmpx/wide-test.html`、検証後削除）で実施。render_html は幅 1280px 固定なので、viewport 幅の検証は doc-max / otp-reserve を代用した。
+- 900px 以下の `.demo-areas .fold { left: 46% }` の media query を削除（fold 58% / 幅 11% は図幅が固定になったため横幅非依存で問題ない）。
+
+- **ゲージ「青丸（knob）が弧から浮く」の修正（2026-09-24）**: 原因は knob の座標式（`c.y − r·sinφ`、y 上向き数式）と `addArc` の端点（**y 下向き座標で `c.y + r·sinφ`**）の方向不一致。`addArc` の端点は (start/end angle の**角度値**と中心・半径で決まり、`clockwise` は経路だけ) なので、knob を弧の endAngle（φ = π − πt）を共用する y 下向き式 `(c.x + r·cosφ, c.y + r·sinφ)` で描けば必ず一致する。実スクショで knob が弧の端点（127.8° = 右下）に乗ることを確認済み。arc 側は `clockwise: false`（y 下向き系で上側半円）。
+- **`.demo-areas`（Regions 図）幅広がりで崩れる問題の修正（2026-09-24）**: `max-width: 720px; margin: 0 auto;` で図を幅固定・中央寄せに（内部は % 絶対配置のまま）。render_html は幅 1280px 固定で viewport 検証ができないので、doc-max 1680px の一時コピー（後片付け済み）で検証。

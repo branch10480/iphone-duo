@@ -84,6 +84,13 @@ private struct HingeAngleGauge: View {
     // 確認）、Canvas は frame 領域をクリップして canvas 座標で描くので、半円が
     // frame 内に完全に内包される。半円は中心から上下 ±55pt（r50 + stroke5）：
     // center=(110,60)、r=50 で弧は y=5..115・x=55..165、frame 高 128 の中に収まる。
+    //
+    // 座標方向の注意（2026-09-24 修正）: Canvas は UIKit と同じ y 下向き座標。
+    // addArc の clockwise は**その座標系**を基準に決まるので、
+    // 上側半円（0°=右 … 180°=左）を描くには counterclockwise = true。
+    // clockwise: true にすると下側半円を回り、ポインタ（y 上向き式）と弧の端点が
+    // 約 2r ずれて「青丸が弧から浮く」実装になる（2026-09-24 実スクショ）。
+    // ポインタの端点式は y 上向き数式（c.y - sin・r）なので、上側半円と一致する。
     private static let size = CGSize(width: 220, height: 128)
     private static let center = CGPoint(x: 110, y: 60)
     private static let radius: CGFloat = 50
@@ -94,23 +101,32 @@ private struct HingeAngleGauge: View {
         Canvas { ctx, _ in
             let c = Self.center
             let r = Self.radius
+            // 軌道（上側半円）。Canvas は y 下向き座標なので、左端(180°)から
+            // 右上端(0°)を「上」越えて回る = 角度増方向 = clockwise: false。
+            // clockwise: true にすると「下」側半円を回り、knob（上側設計）と約 2r
+            // ずれて「青丸が弧から浮く」実装だった（2026-09-24 実スクショ）。
             var track = Path()
             track.addArc(center: c, radius: r,
                           startAngle: .degrees(180), endAngle: .degrees(0),
-                          clockwise: true)
+                          clockwise: false)
             // Canvas 描画コンテキストでは .quaternary / .tint の解決が不確実なので、
             // 実装色の opacity 表現で同じ見た目（淡い軌道 + アクセント実測線）を再現する。
             ctx.stroke(track, with: .color(Color.primary.opacity(0.18)),
                        style: .init(lineWidth: 10))
+            // 実測線: 左端(180°)から t だけ（= 角度の 180° 相当）上越えて進む。
+            // endAngle = 180° + 180°·t（角度増方向で正しく 180°·t だけスウィープ）。
             var prog = Path()
             prog.addArc(center: c, radius: r,
                          startAngle: .degrees(180),
-                         endAngle: .degrees(180 - 180 * t), clockwise: true)
+                         endAngle: .degrees(180 + 180 * t), clockwise: false)
             ctx.stroke(prog, with: .color(Color.accentColor),
                        style: .init(lineWidth: 10, lineCap: .round))
-            // ポインタ（端点 8pt）
+            // ポインタ = 弧の端点。addArc の端点 (c.x + r·cosθ, c.y + r·sinθ)
+            // [θ = 180° + 180°·t] は三角関数の恒等式で
+            // (c.x − cos(tπ)·r, c.y − sin(tπ)·r) に一致するので、この式で描く。
+            // 16pt にする（旧 8pt は 10pt の round cap に隠れて見えなくなるため）。
             let p = CGPoint(x: c.x - cos(t * .pi) * r, y: c.y - sin(t * .pi) * r)
-            ctx.fill(Path(ellipseIn: CGRect(x: p.x - 4, y: p.y - 4, width: 8, height: 8)),
+            ctx.fill(Path(ellipseIn: CGRect(x: p.x - 8, y: p.y - 8, width: 16, height: 16)),
                      with: .color(Color.accentColor))
         }
         .frame(width: Self.size.width, height: Self.size.height)

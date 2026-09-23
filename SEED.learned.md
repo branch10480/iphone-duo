@@ -32,3 +32,8 @@
 - 2026-09-24: browser_read は file:// URL を拒否（web_extract の URL 規則が file URL にも適用される）。ローカル HTML の見た目確認は render_html 一択
 - 2026-09-24: 「render_html の offset_y が top に戻ることがある」は誤り。正しくは seed 側の bug（`scroll-behavior: smooth` で 0.3 秒後はまだ途中）で、2026-09-24 に修正済み。返答文の「撮影位置 y=…」が実際の位置で、「続きは offset_y=…」を使えば 900 px 刻みで抜けなく見られる
 - 2026-09-24: 「ブラウザの見た目自体は seed では見えない」は誤り。正しくは `render_html {"path": …}` でライト / ダークの絵が見える（2026-09-23 から）。`open` の案内は人が手元で開く用
+- 2026-09-24: render_html が返す light.png/dark.png は seed の bash から読めない（cwd にも /tmp にも無い）。図の拡大確認は render_html の offset_y/テーマの再描画か、対象 SVG を抽出した別ファイルに書けば read_file で見られる
+- 2026-09-24: render_html は viewport 幅 1280px 固定。幅広検証は doc-max / otp-reserve を sed で変えた一時コピー（cwd 配下）を描画するのが効く
+- 2026-09-24: SwiftUI の Canvas/Path.addArc は y 下向き座標（UIKit 慣習）。knob を y 上向き式で描くと弧の端点と 2r ずれて浮く。arc の端点と一致させたい図形は addArc の角度 φ を共用し (c.x+r·cosφ, c.y+r·sinφ) で描く（clockwise は経路だけで端点は角度で決まる）
+- 2026-09-24: DuoLab の tab 要素（xcb_wait_for_ui の ref）は action=none で xcb_tap が TARGET_NOT_ACTIONABLE を返す。タブ切替は probe2 axpress <DeviceHub pid> "Hinge" one が有効（切替はスクショで確認）
+- 2026-09-24: xcrun simctl io screenshot の成功表示（Saved screenshot）は stdout に出る。2>/dev/null; echo shot と組み合わせると成功・拒否の区別がつかず「stderr を捨てている」注記が立つ。ファイル存在確認を別途する

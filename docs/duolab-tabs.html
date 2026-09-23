@@ -545,6 +545,8 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
 .demo-pane.orange svg { fill: var(--orange); }
 .demo-areas {
   position: relative;
+  max-width: 720px;
+  margin: 0 auto;
   height: 240px;
   border-radius: var(--r-md);
   border: 1px solid var(--separator);
@@ -694,7 +696,6 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
 .pose .dims { font: 500 11px var(--font-mono); color: var(--text-3); margin-top: 8px; }
 @media (max-width: 900px) {
   .pose-row, .demo-scenes { grid-template-columns: 1fr; }
-  .demo-areas .fold { left: 46%; }
 }
 </style>
 </head>
@@ -812,8 +813,8 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
           <div class="demo-gauge">
             <svg viewBox="0 0 220 128" aria-hidden="true">
               <path class="track" d="M 60 60 A 50 50 0 0 1 160 60" fill="none" stroke-width="10"/>
-              <path class="prog" d="M 60 60 A 50 50 0 0 1 152 35" fill="none" stroke-width="10" stroke-linecap="round"/>
-              <circle class="knob" cx="152" cy="35" r="4"/>
+              <path class="prog" d="M 60 60 A 50 50 0 0 1 140 20" fill="none" stroke-width="10" stroke-linecap="round"/>
+              <circle class="knob" cx="140" cy="20" r="4"/>
             </svg>
             <div class="cap" style="font-family:var(--font-mono); font-size:12px;">2.226 rad&nbsp;&nbsp;(≈ 127.3°)</div>
           </div>
