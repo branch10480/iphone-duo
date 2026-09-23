@@ -33,7 +33,6 @@ final class UIKitDemo: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "UIKit Demo"
 
         // primary / secondary にコンテンツを配置し、2 面を split で並べる
         let primary = UIHostingController(rootView: DemoPaneText("Primary", .blue))
@@ -87,7 +86,12 @@ final class UIKitDemo: UIViewController {
             image: UIImage(systemName: "rectangle.on.rectangle"),
             identifier: UIAction.Identifier("duolab.companion"),
             alternate: UIAction(title: "Window unavailable here", image: nil) { [weak self] _ in
-                self?.activationFallbackTriggered = true
+                guard let self else { return }
+                self.activationFallbackTriggered = true
+                // フラグだけ立てても info ラベルは再描画されない（viewDidLayoutSubviews 駆動）。
+                // hinge / trait の handler と同じく、layout pass を明示的に要求する。
+                self.view.setNeedsLayout()
+                self.view.layoutIfNeeded()
             },
         ) { action in
             let config = UIWindowScene.ActivationConfiguration(userActivity: NSUserActivity(activityType: "com.branch10480.duolab.companion"))
@@ -95,7 +99,11 @@ final class UIKitDemo: UIViewController {
         }
         let menu = UIMenu(title: "Scenes", image: nil, identifier: UIMenu.Identifier("duolab.scenes"), children: [activation])
         let item = UIBarButtonItem(image: UIImage(systemName: "rectangle.on.rectangle"), primaryAction: nil, menu: menu)
-        navigationItem.rightBarButtonItems = [item]
+        // 注意: self は `nav`（rootViewController = arrangementVC）の「子」なので、
+        // self.navigationItem の title / button は可視の nav bar（arrangementVC 側）に出ない。
+        // メニューボタン・タイトルは nav スタック内（root の arrangementVC）にセットする。
+        arrangementVC.navigationItem.title = "UIKit Demo"
+        arrangementVC.navigationItem.rightBarButtonItems = [item]
 
         // 角: Concentricity の UIKit 側（`UICornerConfiguration`、`containerConcentric`）
         let corner = UICornerConfiguration.corners(

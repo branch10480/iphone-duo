@@ -34,9 +34,8 @@ struct ReservedRegionsPage: View {
                                              options: includeInactive ? [.includeInactive] : [])
         let occlusions = proxy.reservedRegions(kind: .occlusion,
                                                options: includeInactive ? [.includeInactive] : [])
-        let activeFoldWidth = divisions
-            .filter(\.isActive)
-            .reduce(0) { $0 + $1.frame.width + $1.margins.leading + $1.margins.trailing }
+        // 折り目バンドを避けた「クリア側」の矩形。縦バンド／横バンドの両方向に対応。
+        let clear = foldClearRect(divisions: divisions, container: proxy.size)
 
         ZStack {
             LinearGradient(colors: [.indigo.opacity(0.25), .purple.opacity(0.25)],
@@ -47,12 +46,22 @@ struct ReservedRegionsPage: View {
                 VStack(spacing: 10) {
                     ForEach(0..<6, id: \.self) { row in
                         DemoRow(row: row)
-                            // 折り目が active なら領域の幅だけ横へ退避（displacement の最小実装）
-                            .offset(x: activeFoldWidth)
-                            .padding(.trailing, activeFoldWidth)
                     }
                 }
                 .padding()
+            }
+            // 折り目バンドを横断しないよう、大きいクリア側に丸ごと配置する（displacement）。
+            .frame(width: max(clear.width, 0), height: max(clear.height, 0))
+            .position(x: clear.midX, y: clear.midY)
+
+            // デバッグ: 折り目の実 frame（view 座標）を表示して、どの辺に置かれるか確認用
+            .overlay(alignment: .topTrailing) {
+                VStack(spacing: 2) {
+                    ForEach(Array(divisions.enumerated()), id: \.offset) { i, region in
+                        Text("fold\(i): x\(Int(region.frame.minX)) y\(Int(region.frame.minY)) \(Int(region.frame.width))x\(Int(region.frame.height)) mL\(Int(region.margins.leading)) mR\(Int(region.margins.trailing)) a\(region.isActive ? 1 : 0) contW\(Int(proxy.size.width))")
+                            .font(.caption2.monospacedDigit()).foregroundStyle(.red).padding(2).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 3))
+                    }
+                }.padding(4)
             }
 
             ForEach(divisions) { region in
@@ -72,6 +81,28 @@ struct ReservedRegionsPage: View {
                 activeOcclusionCount: c.filter(\.isActive).count)
         } action: { summary in
             summaryProxy = GeometryProxyStub(summary: summary)
+        }
+    }
+
+    /// 折り目（division）バンドは表示領域の**中央**を横切り、方向は orientation に依存する。
+    ///  - 縦バンド（landscape）: 左右に分割 → 広い側（幅が大きい側）に content を収める
+    ///  - 横バンド（portrait） : 上下に分割 → 高い側（高さが大きい側）に content を収める
+    /// バンドが inactive / 存在しない場合は全領域を使う。
+    private func foldClearRect(divisions: [ReservedRegion], container: CGSize) -> CGRect {
+        guard let band = divisions.first(where: { $0.isActive }) else {
+            return CGRect(origin: .zero, size: container)
+        }
+        let f = band.frame
+        if f.height >= f.width {
+            // 縦バンド → 横方向に退避（左右の広い側）
+            let left = CGRect(x: 0, y: 0, width: max(0, min(f.minX, container.width)), height: container.height)
+            let right = CGRect(x: max(0, f.maxX), y: 0, width: max(0, container.width - f.maxX), height: container.height)
+            return left.width >= right.width ? left : right
+        } else {
+            // 横バンド → 縦方向に退避（上下の高い側）
+            let top = CGRect(x: 0, y: 0, width: container.width, height: max(0, min(f.minY, container.height)))
+            let bottom = CGRect(x: 0, y: max(0, f.maxY), width: container.width, height: max(0, container.height - f.maxY))
+            return top.height >= bottom.height ? top : bottom
         }
     }
 

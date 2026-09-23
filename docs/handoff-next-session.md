@@ -155,6 +155,17 @@
    - **照合**: portrait 内側 `2007/3=669 × 2853/3=951` −(T134+B83) = **669×734**、landscape 内側 `2853/3=951 × 2007/3=669` −(T82+R84+B34) = **867×553**。外側 landscape `2034/3=678 × 1398/3=466` −(T82+R84+B34) = **594×350**。表示値と一致。
    - **結論（要約の修正）**: フレームバッファ方向・size class・corner・**safeArea** はいずれも **orientation（logical 形状）に依存**。要約の「safeArea だけ orientation 非依存の定数」は**不成立**（safeArea は logical 形状に依存、pose 非依存）。要実機確認: safeArea の portrait/landscape 2 値が実機でも同じか（シミュレータ値）。
 
+## 2026-09-23 シム作り直し後の再巡回（全画面機能監査 §5〜§8 の実測）
+
+> ユーザーがシミュレータを作り直し（新 UDID `03AE0D2C-CE81-4F2F-9A76-8A1EA1960745`）。MCP `duolab` profile へ新 UDID＋`OTHER_SWIFT_FLAGS=-disable-sandbox` を反映して build→run 成功。旧シム（`6B8C075B`）で起きた「ミラー全面黒・app コンテンツ空」は新シムでは未再現（fresh boot 出発、外側 content / ミラー axtree とも正常）。以下は新シムでの実測（2026-09-23）。
+
+- **座標系**（新シムで再確認）: DeviceHub ミラー axtree の app content グループは `@-256,805 466x678pt`（新シム、旧シムでは @81,1092）。axtree 座標はスクリーングローバルそのもので、外側バッファ（1398×2034px = 466×678pt @3x、landscape open は 2034×1398px）への線形変換は前セッションと同一。ミラー全面黒時はこの axtree（値）を、点灯・popup の見た目判定は外側バッファの inkmap を使う。
+- **§5 Bar**: `Disable vertical bar（opt-out）` トグル押下で外側（closed+portrait）右端の縦バー blob が消失→再押下で復帰（`toolbarVerticalBehavior(.disabled)` 実効）。opt-in 項目（gear/share/Done）は action 空 → tap で可視反応なし（#5、sheet/alert 追加推奨）。landscape は上バーに 3 項目フラット（前セッション実測継続）。
+- **§6 Scenes**（新シム実測）: `scene 可用性` は pose 連動（closed=unavailable / open=available、`accessory available`・`content` も連動）。toolbar の `Prompter` ボタンは `AXEnabled` で open 時 true / closed 時 false（`statesw` 実測）、`Camera capture` チェックは常時有効。prompter on/off（`Camera capture` 経由、ボタン自身は needle 自己一致で axpress 不可）で外側バッファが全面黒→テレプロンプタ行出現→再 off で消灯（`onAvailabilityChange`+`.sceneAccessory` の点灯実効）。`Open companion window` は tap 後 note 文が「…サイレント無視…」へ更新、クラッシュ無（sim では新ウィンドウ立たない＝設計どおり）。
+- **§7 UIKit**: info ラベルは pose 連動（closed=`hinge: closed angle 0.00 rad fold width 0 pt…` / open=`hinge: fully open angle 3.14 rad…`）。#4 修正後の nav bar タイトル `UIKit Demo` は stable。split（horizontal）は `Primary`+`Secondary` 同時表示。UIMenu popup は前セッションで longpress+inkmap で確認済み（項目 tap は system レイヤー制約でミラー越し届かず＝SEED.learned.md）。クラッシュ無。
+- **§8 タブバー**: 全 7 タブ（Overview・Hinge・Two Pane・Regions・Bar・Scenes・UIKit）が tabbar 右端の縦バーに**常時**表示（`More` 未使用）。closed/open 両 pose・新旧シムとも 7 個 stable。巡回で app pid 不変（クラッシュ無）。
+- **残（実機待ち）**: UIMenu の項目 tap（alternate 発火）、companion ウィンドウの実表示、`fold` の別角度、カメラ撮影・onAvailabilityChange の実機カメラ方向。
+
 ## 残作業（次のセッション）
 
 1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9・12〜14）。

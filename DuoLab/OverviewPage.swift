@@ -7,8 +7,6 @@ struct OverviewPage: View {
     @Environment(\.horizontalSizeClass) private var hClass
     @Environment(\.verticalSizeClass) private var vClass
     @Environment(\.displayScale) private var displayScale   // UIScreen.main.scale の置換先
-    @State private var deviceOrientation = UIDevice.current.orientation
-    @State private var interfaceOrientation = "n/a"
 
     var body: some View {
         NavigationStack {
@@ -16,6 +14,12 @@ struct OverviewPage: View {
                 let size = proxy.size
                 let safe = proxy.safeAreaInsets
                 let radii = proxy.concentricCornerRadii
+                // orientation 報告値を body のたびに読み直す（ローカル計算）。
+                // 従来は @State + orientationDidChangeNotification のみで、
+                // pose のみ変化（orientation 非変化）すると stale になる。
+                // GeometryReader は pose 変化でサイズが変わるため body が再評価され、常に最新になる。
+                let deviceOrientLabel = orientationLabel()
+                let ifaceLabel = ifaceOrientLabel()
 
                 VStack(alignment: .leading, spacing: 14) {
                     GroupBox("Size Class（orientation 非依存で判断）") {
@@ -30,8 +34,8 @@ struct OverviewPage: View {
                         KeyValue("safeArea", String(format: "T %.0f / R %.0f / B %.0f / L %.0f",
                                                     safe.top, safe.trailing, safe.bottom, safe.leading))
                         // safeArea の依存軸の分離用（orientation の報告値）
-                        KeyValue("orientation", deviceOrientation.rawValueLabel)
-                        KeyValue("ifaceOrient", interfaceOrientation)
+                        KeyValue("orientation", deviceOrientLabel)
+                        KeyValue("ifaceOrient", ifaceLabel)
                     }
                     GroupBox("Concentricity（角の追従）") {
                         if let radii {
@@ -49,20 +53,19 @@ struct OverviewPage: View {
             }
             .navigationTitle("Overview")
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            updateOrientation()
-        }
-        .onAppear { updateOrientation() }
     }
 
-    /// 現在の orientation を報告値に反映する。
-    private func updateOrientation() {
-        deviceOrientation = UIDevice.current.orientation
+    /// 現在のデバイス orientation のラベル。
+    private func orientationLabel() -> String {
+        UIDevice.current.orientation.rawValueLabel
+    }
+
+    /// 現在の scene interfaceOrientation のラベル（scene 無ければ no-scene）。
+    private func ifaceOrientLabel() -> String {
         if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
-            interfaceOrientation = scene.interfaceOrientation.label
-        } else {
-            interfaceOrientation = "no-scene"
+            return scene.interfaceOrientation.label
         }
+        return "no-scene"
     }
 
     /// 実測（2026-09-21、sim）:
