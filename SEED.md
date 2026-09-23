@@ -7,10 +7,14 @@
   全面黒になることがあり、app がどちらの面に描かれるかは pose で変わる（closed で外側、2026-09-23 実測）。
   黒なら反対の display を撮る。**inkmap / cropblock / blob 差で画素を数値化して読まない**（learned にその手順が残っていても、
   read_file で見る方を使う）。書き出し先は cwd 配下（`/tmp` は書けない）。
-- **`xcb_build_run_sim` の後は必ず Overview タブに戻る。** タブ切替は最初から
-  `.tmpx/axtest/probe2 axpress <DeviceHub pid> "Hinge" one; sleep 2` を使う（`xcb_snapshot_ui` → `xcb_tap` は
-  「成功」を返しながら画面が変わらないことがあり、2026-09-23 に 1 turn で 2 回、4 反復ずつ無駄にした）。
-  切替直後 1 秒はアニメーション中で押下状態が写るので、撮る前に 2 秒待つ。
+- **`xcb_build_run_sim` の後は必ず Overview タブに戻る。** ビルド直後は DeviceHub ミラーの axtree が未反映で
+  `probe2 axpress` が pressed:0 になるので、`xcb_wait_for_ui {"predicate":"textContains","text":"<タブ名>"}` →
+  `xcb_tap {"elementRef":…,"postDelay":2}` を**同じ反復で**呼ぶ。pose 切替（Open / Closed）の後は
+  `.tmpx/axtest/probe2 axpress <DeviceHub pid> "<タブ名>" one; sleep 2` でよい。どちらも「成功」と言いながら
+  画面が変わらないことがある（2026-09-23 に 1 turn で 2 回）ので、**撮って切り替わったかを絵で確認してから**次へ進む。
+- **修正後の確認は、該当領域を切り出して 2 倍に拡大した画像も `read_file` で見る**
+  （`python3 -c "from PIL import Image; im=Image.open('x.png'); im.crop((x0,y0,x1,y1)).resize((w*2,h*2)).save('x_tr.png')"`、
+  1 枚 560 tokens）。全体像だけだと小さい字の欠け（「oc… active」）を見落として「解消」と報告した（2026-09-23 に 2 回）。
 - UI の値の読み取りは `xcb_wait_for_ui {"predicate":"textContains","text":"…"}`（sim 本体の axtree）が
   DeviceHub ミラーより安定。`xcb_snapshot_ui` → `xcb_tap` を使うなら**同じ反復で続けて**呼ぶ（間に長考が入ると snapshot が失効する）。
 - `xcb_install_app_sim` は `appPath` を渡す（`xcb_get_sim_app_path` の結果）。
