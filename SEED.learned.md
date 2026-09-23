@@ -23,3 +23,4 @@
 - 2026-09-23: sips --cropOffset --cropToHeightWidth が exit 13 で出ない。PIL crop+resize（python3 -c "from PIL import Image; im.crop(...).resize(...).save(...)") で動く
 - 2026-09-23: xcb_build_run_sim 直後に probe2 axpress が pressed:0 を返す（ミラー axtree 未反映）。xcb_wait_for_ui textContains → xcb_tap elementRef が安定
 - 2026-09-23: probe2 axpress「Bar」は DeviceHub メニューの「Show Tab Bar」等 AXMenuItem に先頭一致して誤押下することがある（app 画面は不変のまま）。タブ切り替わったか必ずスクショで確認
+- 2026-09-23: open pose（内外コピーの中心xが負になる側）では DeviceHub ミラーの axpress が外側コピーに落ち、sim 内タブが切り替わらない（pressed:1 なのに画面不変）。open の巡回は sim 本体の xcb_wait_for_ui→xcb_tap、または axpress 後必ずスクショでタブ切替を確認
