@@ -167,6 +167,18 @@
 - **Hinge タブの Gauge はみ出し修正**: 旧 `HingeAngleGauge` は `GeometryReader` の不定サイズに `radius = min(w, h*1.8)/2`・`center.y = h*0.9` を乗せていたため、幅狭な外側 portrait で弧底が GroupBox 底からはみ出し、角度 Text と重なる（実スクショ `.tmpx/hinge_out.png` で確認、ユーザー報告）。修正は `HingePage.swift` の `HingeAngleGauge` を **Canvas 固定テンプレート（220×128、中心 (110,60)、r=50）** に置換: `Shape.path(in rect)` は frame 座標と一致せず描画位置がずれるため（`.frame` 後も ArcPath 単体の rect 座標で描画され box 底割れ）、Canvas は frame 領域をクリップして frame 局座標で描くため半円が確実に内包される。`.quaternary`→`Color.primary.opacity(0.18)`、`.tint`→`Color.accentColor`（GraphicsContext は `Color` 解決必須）。`ArcPath`（不使用化）を削除。併せて **Hinge Status の説明文が外側 portrait で「…Use Arrang…」と 1 行に切り落ちていた**件: `statusDetail` の `Text` に `.fixedSize(horizontal: false, vertical: true)` を追加し複数行折り返しに対応（既定の greedy 折り返しを保証するだけ）。外側 closed（`.tmpx/st3_out.png`: 2 行で全表示）と open 内側（`.tmpx/st4_in.png`: 1 行のまま）の双方でスクショ確認済み。さらに `statusDetail` の文案を日本語化（英語のままでは幅が効率的に取れず 3 行に伸びる）し、外側 `.tmpx/st10_out.png`（2 行で収まる）/ 内側 `.tmpx/st11_in.png`（1 行）で再確認済み。確認: 外側 closed（0.000 rad、弧が box 内に収まり Text と非重複、`.tmpx/h9_out.png`）と open 内側（3.142 rad=180°、`.tmpx/h10_in.png`）の両 pose でスクショ確認済み。
 - **残（実機待ち）**: UIMenu の項目 tap（alternate 発火）、companion ウィンドウの実表示、`fold` の別角度、カメラ撮影・onAvailabilityChange の実機カメラ方向。
 
+## 2026-09-23 巡回2（ヒンジ以外全タブの画面・ボタン監査、新シム・新ビルド）
+
+> ヒンジタブ以外の各タブ（Overview・Two Pane・Regions・Bar・Scenes・UIKit）を sim `03AE0D2C-…`（新シム）で open/closed 両 pose 巡回し、画面崩れ・要素の重複・ボタン動作をスクショ（`xcrun simctl io screenshot --display=1/3` + `read_file`）で確認。不具合 3 件を修正し再巡回で確認。
+
+- **Two Pane（open 内側 landscape 867×553）**: `Style: auto` ボタン押下で `overlay`→`split` 循環（auto 判定はコンテナ高 < 600 で overlay）。overlay 表示の secondary 4 行・primary video box（16:9）・zIndex バッジ、split 表示の primary 単体——コード設計どおりで正常。画面崩れなし。
+- **Regions**: 6 行リスト・summary・inactive トグルは正常。**不具合: occlusion デバッグラベル（青枠）が status bar（時刻・Wi-Fi）と重なり文字が途切れる**（open/closed 両 pose）。`RegionOutline` のラベル配置を `topLeading`→`bottomLeading`（region 下端）へ移し、素材背景で status bar 図形を透かし表示に（`ReservedRegionsPage.swift`）。再巡回 `.tmpx/rg5.png`（open）/`.tmpx/rg6_closed.png`（closed）で文字途切れ解消を確認。
+- **Bar（closed）**: レイアウト正常（Controls・8 行 Item）。`Disable vertical bar` トグルと opt-in 項目の blob は正常。**不具合: opt-in 項目（gear/share/Done）は AX action 空で tap 可視反応なし**（前セッション audit #5）。`VerticalBarPage.swift` へ押下項目名（`OptInAction`）+ 画面下部 sheet（`presentationDetents .fraction(0.25)`）を追加。`xcb_snapshot_ui`→`xcb_tap e67`（gear、sim 本体 axtree）で sheet「opt-in pressed / gear（縦バー toolbar ボタン）/ 閉じる」出現を実スクショ `.tmpx/bar_gear6.png` で確認。DeviceHub ミラー click は不感（前セッション観察の継続＝ミラー側 toolbar は CGEvent 不感）、sim 本体の elementRef tap が有効。
+- **Scenes（新シム・新ビルド）**: closed 外側（`.tmpx/sc2_closed.png`）と open 内側（`.tmpx/sc_after_in.png`）でレイアウト正常。`Camera capture` チェック押下で `Prompter: on→off`・`accessory available no→yes`・`scene 可用性 unavailable→available` が連動（onAvailabilityChange 実効、前セッション観察の継続）。
+- **UIKit**: split（horizontal）Primary/Secondary 同時表示・UIMenu ボタン（rectangle.on.rectangle）は正常。**不具合: 左上 info ラベル（7 行）が nav bar タイトル `UIKit Demo` と重なる**（closed 外側 portrait で顕著、`.tmpx/ui_closed.png`）。ラベル top constraint を safeArea+12 → **safeArea+60**（可視 nav bar 高さ分退避）に（`UIKitDemo.swift`）。再巡回 `.tmpx/ui2_closed.png`（closed、重なり解消）/`.tmpx/ui2_open.png`（open、Primary+Secondary 2 面 + ラベル stable）で確認。
+- **Hinge Status の複数行対応**は本セッション開始時に既に commit 済み（`d191d74` 説明文 `.fixedSize` + `25a027b` 文案日本語化）→ open 内側 `.tmpx/hinge_open2.png`（2 行 stable）で再確認のみ。
+- **残（実機待ち、変更なし）**: UIMenu 項目 tap（alternate 発火）、companion ウィンドウ実表示、`fold` 別角度、カメラ撮影。
+
 ## 残作業（次のセッション）
 
 1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9・12〜14）。

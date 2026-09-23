@@ -15,3 +15,7 @@
 - 2026-09-23: simctl io のディスプレイインデックスは --display=1=外側(1398×2034) / --display=3=内側(2007×2853) / primary-1=内側。SEED.md の primary-1 以外の別表示で外側単体を撮るときは 1。inkmap で点灯/消失の blob 差で判定
 - 2026-09-23: xcb_wait_for_ui の textContains が複数マッチで TARGET_AMBIGUOUS を返すと結果に Candidates の elementRef 一覧が出る。そのまま tap せず、role/identifier で絞り込み直す（例: "Vertical Bar" は tab+switch+text の3件）
 - 2026-09-23: SwiftUI の Shape.path(in rect) は親 frame 座標と一致せず描画がずれる（固定 frame 付けでも box 底割れ）。半円ゲージは Canvas（frame 領域をクリップして frame 局座標で描画）に置換すると確定して内包できる。GraphicsContext は .quaternary/.tint を解決せず Color 系が必要
+- 2026-09-23: probe2 axpress「Hinge」は閉じ pose（外側表示）で app 領域がオフスクリーンになり内外コピー両方候选になり、外側コピーを先に押すと tab 復帰に axpress 再実行が必要。復帰操作は xcb_tap とも組み合わせず、axpress 結果の candidate 一覧で押した側を確認する
+- 2026-09-23: probe2 axpress「Open」後、simctl io screenshot --display=1 は landscape 2034×1398 の外側バッファ（全黒でよい）を返す。content 確認は --display=3（2853×2007 内側）が正。pose 変更直後の display=1 黒スクショは pose 依存の既知挙動で app 不調ではない
+- 2026-09-23: probe2 axpress は needle の先頭一致をそのまま 1 件押下するため、状態変化ボタン（例「Style: auto → overlay」→押下後「Style: split」）の検証は押下前後の candidate 文字列変化とスクショで二重確認する。押下後に文字列が変わるだけで機能は正常
+- 2026-09-23: simctl io screenshot の display インデックス: --display=1=外側バッファ（closed で外側が表向き / open 後 landscape 2034x1398）, --display=3=内側バッファ（open 後 2007x2853 portrait）。pose 変更後 2 秒待ってから撮る。内側内容確認は 3 が正

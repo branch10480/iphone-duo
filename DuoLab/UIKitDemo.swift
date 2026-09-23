@@ -124,7 +124,9 @@ final class UIKitDemo: UIViewController {
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             label.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            label.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            // 可視の nav bar（root = arrangementVC、タイトル「UIKit Demo」）の高さ分だけ下へ退ける。
+            // safeArea.top のままだと閉じ pose の横長外側でタイトル文字とラベルが重なる。
+            label.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
         ])
     }
 

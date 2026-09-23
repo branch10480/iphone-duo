@@ -141,7 +141,10 @@ private struct RegionOutline: View {
     var body: some View {
         Rectangle()
             .strokeBorder(color, lineWidth: 2)
-            .overlay(alignment: .topLeading) {
+            // occlusion（カメラ孔）region は status bar（時刻・Wi-Fi）の載る領域そのもの。
+            // ラベルを topLeading に置くと文字が status bar 図形と重なる（閉じ pose で既視）。
+            // 下端側（bottomLeading）へ移し、素材背景で status bar 図形を透かし表示する。
+            .overlay(alignment: .bottomLeading) {
                 Text("\(label) \(region.isActive ? "active" : "inactive")")
                     .font(.caption2)
                     .foregroundStyle(color)
