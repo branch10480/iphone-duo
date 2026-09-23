@@ -16,6 +16,11 @@ struct HingePage: View {
                     Text(statusDetail)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        // 幅狭な外側 portrait では 1 行で収まらず端が…で
+                        // 切り落ちる（2026-09-23 外側スクショで確認）。
+                        // 既定は greedy 折り返しなので明示は不要だが、
+                        // lineLimit(1) 等の追加時に 1 行固定に戻さないよう注記。
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 GroupBox("Hinge Angle（live）") {
