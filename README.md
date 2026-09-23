@@ -3,6 +3,7 @@
 iPhone Duo（Apple 初の折りたたみ iPhone、2026-09-09 発表 / 10-23 発売 / iOS 27.1）対応リサーチ。
 
 - [`docs/iphone-duo-support.md`](docs/iphone-duo-support.md) — **対応に必要な情報と API（ヒンジ API 等）のまとめ**。主ドキュメント。
+- [`docs/duolab-tabs.html`](docs/duolab-tabs.html) — サンプルアプリ DuoLab の各タブが何の API・仕様のデモかを 1 ページにまとめたガイド（単一ファイル HTML。手元で `open` して読む）。
 - [`artifacts/ios27.1-sdk/`](artifacts/ios27.1-sdk/) — ローカル Xcode 27.1（27A9269）の iOS 27.1 SDK から取得した一次資料。
   - `UIHinge.h` / `UIHingeInteraction.h` — ヒンジ API の本体
   - `UIArrangementViewController.h` / `UIOverlayArrangement.h` / `UISplitArrangement.h` — 2 面レイアウト

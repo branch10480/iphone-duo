@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DuoLab タブガイド — ヒンジ・2面レイアウト検証アプリ</title>
+<script>
+(() => {
+  const root = document.documentElement;
+  try {
+    const mode = localStorage.getItem("tds-theme") || "auto";
+    if (mode === "light" || mode === "dark") {
+      root.dataset.theme = mode;
+      root.dataset.themeMode = mode;
+      return;
+    }
+    root.dataset.theme = window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    root.dataset.themeMode = "auto";
+  } catch {}
+})();
+</script>
+<style>
+/* ============================================================
+   Tokens — Toshi Design System（単一ファイル完結モードで再宣言）
+   ============================================================ */
+:root {
+  color-scheme: light dark;
+
+  /* surfaces */
+  --bg:        #FFFFFF;
+  --bg-alt:    #F5F5F7;
+  --bg-elev:   #FFFFFF;
+  --bg-code:   #F7F7F7;
+  --separator: #D2D2D7;
+  --hairline:  rgba(0, 0, 0, 0.10);
+
+  /* text */
+  --text:   #1D1D1F;
+  --text-2: #66666B;   /* WCAG AA: secondary running text ≥4.5:1 */
+  --text-3: #747479;   /* WCAG AA: meta / ラベル */
+
+  /* tint = リンク・アクセント (Apple blue) */
+  --tint:            #0066CC;
+  --tint-fill:       #0071E3;
+  --tint-fill-hover: #0077ED;
+  --on-tint:         #FFFFFF;
+
+  /* status */
+  --green:  #008009;
+  --orange: #B25000;
+  --red:    #D70000;
+  --purple: #6846C7;
+
+  /* syntax — Xcode default light */
+  --syn-k: #AD3DA4;
+  --syn-t: #703DAA;
+  --syn-s: #D12F1B;
+  --syn-n: #272AD8;
+  --syn-c: #707F8C;
+  --syn-f: #4B21B0;
+  --syn-d: #03638C;
+
+  /* type */
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+               "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+               "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Arial, sans-serif;
+  /* system font のみ（旧 UDEV Gothic @font-face は成果物から外す）。
+     並び順: SF Mono（castle 管理 Mac）→ ui-monospace（WebKit なら SF Mono）→ Menlo（macOS 標準の保険） */
+  --font-mono: "SF Mono", ui-monospace, "SFMono-Regular",
+               Menlo, Monaco, Consolas, monospace;
+  --code-weight: 400;
+
+  /* radius */
+  --r-pill: 980px;
+  --r-xl:   18px;
+  --r-lg:   14px;
+  --r-md:   10px;
+  --r-sm:   6px;
+
+  /* elevation */
+  --sh-1:    0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.06);
+  --sh-2:    0 11px 34px rgba(0,0,0,.14);
+  --sh-menu: 0 10px 40px rgba(0,0,0,.18);
+
+  /* layout */
+  --doc-max: 1040px;
+  --otp-w: 210px;
+  --otp-reserve: calc(var(--otp-w) + 48px);
+}
+
+/* ---- dark values（auto: OS 追従。手動 light 指定時は無効） ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #181818;
+    --bg-alt:    #1B1E24;
+    --bg-elev:   #252932;
+    --bg-code:   #1A1D23;
+    --separator: #333842;
+    --hairline:  rgba(255, 255, 255, 0.14);
+    --text:   #D0D3D8;
+    --text-2: #9EA3AA;
+    --text-3: #8B9098;
+    --tint:   #4A94DC;
+    --green:  #86D7A3;
+    --orange: #E2BE5A;
+    --red:    #E88980;
+    --purple: #C2A3E5;
+    --code-weight: 400;
+    --syn-k: #E06A9F; --syn-t: #C7A8E8; --syn-s: #E77668; --syn-n: #C8BA74;
+    --syn-c: #7C8791; --syn-f: #A174D4; --syn-d: #5FC6E6;
+    --sh-1:    0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.5);
+    --sh-2:    0 11px 34px rgba(0,0,0,.6);
+    --sh-menu: 0 10px 40px rgba(0,0,0,.7);
+  }
+}
+/* ---- dark values（手動指定）。上のブロックと同値を維持すること ---- */
+:root[data-theme="dark"] {
+  --bg:        #181818;
+  --bg-alt:    #1B1E24;
+  --bg-elev:   #252932;
+  --bg-code:   #1A1D23;
+  --separator: #333842;
+  --hairline:  rgba(255, 255, 255, 0.14);
+  --text:   #D0D3D8;
+  --text-2: #9EA3AA;
+  --text-3: #8B9098;
+  --tint:   #4A94DC;
+  --green:  #86D7A3;
+  --orange: #E2BE5A;
+  --red:    #E88980;
+  --purple: #C2A3E5;
+  --code-weight: 400;
+  --syn-k: #E06A9F; --syn-t: #C7A8E8; --syn-s: #E77668; --syn-n: #C8BA74;
+  --syn-c: #7C8791; --syn-f: #A174D4; --syn-d: #5FC6E6;
+  --sh-1:    0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.5);
+  --sh-2:    0 11px 34px rgba(0,0,0,.6);
+  --sh-menu: 0 10px 40px rgba(0,0,0,.7);
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.47;
+  letter-spacing: -0.022em;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--tint); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--text); }
+code, pre { font-family: var(--font-mono); letter-spacing: 0; }
+
+/* ============================================================
+   Article — 1 カラムのコンテンツ
+   ============================================================ */
+.article {
+  max-width: min(var(--doc-max), calc(100vw - 2 * var(--otp-reserve)));
+  margin: 0 auto;
+  padding: 64px 22px 120px;
+}
+
+.doc-header { padding-bottom: 28px; border-bottom: 1px solid var(--hairline); }
+.eyebrow { font-size: 14px; color: var(--text-2); margin: 0 0 10px; font-weight: 500; }
+.doc-header h1 {
+  margin: 0;
+  font-size: clamp(29px, 4.1vw, 40px);
+  font-weight: 600; letter-spacing: -0.015em; line-height: 1.1;
+}
+.doc-header .abstract { margin: 14px 0 0; font-size: 17px; color: var(--text-2); line-height: 1.45; max-width: 62ch; }
+.meta {
+  display: flex; gap: 8px 18px; flex-wrap: wrap;
+  margin-top: 18px;
+  font-size: 12px; color: var(--text-3);
+}
+.meta strong { color: var(--text-2); font-weight: 500; }
+
+.doc-section { padding: 44px 0 8px; scroll-margin-top: 24px; }
+.doc-section + .doc-section { border-top: 1px solid var(--hairline); margin-top: 36px; }
+.doc-section h2 { font-size: 25px; font-weight: 600; letter-spacing: -0.012em; margin: 0 0 8px; }
+.doc-section h3 { font-size: 17px; font-weight: 600; margin: 32px 0 10px; }
+.doc-section p { color: var(--text); font-size: 15px; line-height: 1.6; }
+.doc-section p.lede { color: var(--text-2); font-size: 15px; margin-top: 0; }
+
+/* ============================================================
+   Theme toggle — 右上フローティング
+   ============================================================ */
+.theme-toggle {
+  position: fixed; top: 16px; right: 24px; z-index: 50;
+  font: 500 12px var(--font-text);
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: 5px 14px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: var(--sh-1);
+  transition: color 120ms, border-color 120ms;
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--separator); }
+.theme-toggle .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tint); }
+@media (max-width: 1239px) { .theme-toggle { right: 20px; } }
+
+/* ============================================================
+   Floating in-page menu
+   ============================================================ */
+.otp {
+  position: fixed;
+  right: 24px; top: 64px;
+  width: var(--otp-w);
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-menu);
+  padding: 14px 6px 10px;
+  z-index: 40;
+}
+.otp .otp-title {
+  font: 600 11px var(--font-text);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 0 12px 8px;
+}
+.otp a {
+  display: block;
+  font-size: 13px; color: var(--text-2);
+  padding: 5px 12px; border-radius: var(--r-sm);
+  transition: color 120ms, background 120ms;
+}
+.otp a:hover { color: var(--text); background: var(--bg-alt); text-decoration: none; }
+.otp a.is-current { color: var(--tint); font-weight: 600; }
+
+.fab { display: none; }
+@media (max-width: 1239px) {
+  :root { --otp-reserve: 0px; }
+  .otp { display: none; }
+  .fab {
+    display: flex;
+    position: fixed; right: 20px; bottom: 24px; z-index: 60;
+    width: 50px; height: 50px; border-radius: 50%;
+    align-items: center; justify-content: center;
+    background: var(--tint-fill); color: var(--on-tint);
+    border: none; cursor: pointer;
+    box-shadow: var(--sh-menu);
+  }
+  .fab svg { width: 22px; height: 22px; }
+}
+.fab-panel {
+  display: none;
+  position: fixed; right: 20px; bottom: 86px; z-index: 60;
+  width: min(260px, calc(100vw - 40px));
+  max-height: 55vh; overflow-y: auto;
+  background: color-mix(in srgb, var(--bg-elev) 86%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-menu);
+  padding: 14px 6px 10px;
+}
+.fab-panel.is-open { display: block; }
+.fab-panel .otp-title {
+  font: 600 11px var(--font-text);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3); padding: 0 12px 8px;
+}
+.fab-panel a {
+  display: block; font-size: 14px; color: var(--text-2);
+  padding: 8px 12px; border-radius: var(--r-sm);
+}
+.fab-panel a:hover { background: var(--bg-alt); color: var(--text); text-decoration: none; }
+.fab-panel a.is-current { color: var(--tint); font-weight: 600; }
+
+/* ============================================================
+   Components
+   ============================================================ */
+
+/* --- Asides --- */
+.aside {
+  border: 1px solid var(--hairline);
+  border-left-width: 4px;
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin: 14px 0;
+  background: var(--bg-alt);
+}
+.aside .aside-label { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
+.aside p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text); }
+.aside-note      { border-left-color: var(--text-3); }
+.aside-note      .aside-label { color: var(--text-2); }
+.aside-important { border-left-color: var(--purple); background: color-mix(in srgb, var(--purple) 6%, var(--bg-elev)); }
+.aside-important .aside-label { color: var(--purple); }
+.aside-tip       { border-left-color: var(--green);  background: color-mix(in srgb, var(--green) 6%, var(--bg-elev)); }
+.aside-tip       .aside-label { color: var(--green); }
+.aside-warning   { border-left-color: var(--red);    background: color-mix(in srgb, var(--red) 6%, var(--bg-elev)); }
+.aside-warning   .aside-label { color: var(--red); }
+
+/* --- Key Takeaways --- */
+.summary {
+  border: 1px solid color-mix(in srgb, var(--tint) 24%, var(--separator));
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--tint) 6%, var(--bg));
+  padding: 16px 20px 18px;
+  margin: 20px 0;
+}
+.summary .summary-label {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--tint);
+}
+.summary .summary-label::before {
+  content: ""; flex: none;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tint);
+}
+.summary ul { margin: 0; padding-left: 20px; }
+.summary li { margin: 5px 0; font-size: 15px; line-height: 1.55; color: var(--text); }
+.summary li::marker { color: color-mix(in srgb, var(--tint) 55%, var(--text-3)); }
+
+/* --- Code --- */
+pre.listing {
+  background: var(--bg-code);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 18px 16px;
+  font-size: 14px; line-height: 1.62;
+  font-weight: var(--code-weight);
+  color: var(--text);
+  overflow-x: auto;
+  margin: 14px 0;
+}
+pre.listing .k { color: var(--syn-k); font-weight: 500; }
+pre.listing .t { color: var(--syn-t); }
+pre.listing .s { color: var(--syn-s); }
+pre.listing .n { color: var(--syn-n); }
+pre.listing .c { color: var(--syn-c); }
+pre.listing .f { color: var(--syn-f); }
+pre.listing .d { color: var(--syn-d); }
+code.inline {
+  font-size: 0.92em;
+  font-weight: var(--code-weight);
+  background: var(--bg-alt);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text);
+}
+.code-wrap { position: relative; margin: 14px 0; }
+.code-wrap pre.listing { margin: 0; }
+.copy-btn {
+  position: absolute; top: 10px; right: 10px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  color: var(--text-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 180ms ease, color 120ms, border-color 120ms;
+}
+.code-wrap:hover .copy-btn,
+.copy-btn:focus-visible { opacity: 1; }
+@media (hover: none) { .copy-btn { opacity: 1; } }
+.copy-btn:hover { color: var(--text); border-color: var(--separator); }
+.copy-btn.is-copied { color: var(--green); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
+.copy-btn svg { width: 15px; height: 15px; }
+
+/* --- Tables --- */
+table.params {
+  width: 100%; border-collapse: collapse;
+  font-size: 14px;
+  margin: 14px 0;
+}
+table.params th, table.params td {
+  text-align: left; padding: 11px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+table.params thead th {
+  font-size: 12px; font-weight: 600; color: var(--text-2);
+  border-bottom: 1px solid var(--separator);
+}
+table.params td.param { font-family: var(--font-mono); font-size: 14px; color: var(--syn-d); }
+table.params td.type  { font-family: var(--font-mono); font-size: 14px; color: var(--text-2); overflow-wrap: anywhere; }
+table.params tbody tr:hover { background: var(--bg-alt); }
+
+/* --- Lists --- */
+ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 14px 0; }
+ol.steps > li {
+  counter-increment: step;
+  display: grid; grid-template-columns: 32px 1fr; gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 15px;
+}
+ol.steps > li:last-child { border-bottom: none; }
+ol.steps > li::before {
+  content: counter(step);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  color: var(--text-2);
+  font: 600 12px var(--font-text);
+  display: flex; align-items: center; justify-content: center;
+}
+ol.steps ul, ol.steps ol { margin: 8px 0 2px; padding-left: 20px; font-size: 14px; color: var(--text-2); }
+ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
+.doc-section ul.plain { margin: 14px 0; padding-left: 20px; }
+.doc-section ul.plain li { margin: 8px 0; line-height: 1.6; }
+
+/* --- Badges --- */
+.badge-beta {
+  display: inline-block;
+  font: 600 11px var(--font-text);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--green);
+  border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border-radius: var(--r-pill);
+  padding: 2px 10px;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+/* --- Footer --- */
+.pagefooter {
+  margin-top: 64px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 18px;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  font-size: 12px; color: var(--text-3);
+}
+.pagefooter a { color: var(--text-2); }
+
+/* ============================================================
+   Demo figures（ページ固有）
+   ============================================================ */
+.demo {
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  background: var(--bg-alt);
+  padding: 16px;
+  margin: 16px 0;
+}
+.demo .demo-title {
+  font: 600 11px var(--font-text);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin: 0 0 10px;
+}
+.demo-rows { display: flex; flex-direction: column; gap: 8px; }
+.demo-box {
+  background: var(--bg-elev);
+  border: 1px solid var(--separator);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+}
+.demo-box .b-title {
+  font: 600 11px var(--font-text);
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+  margin: 0 0 6px;
+}
+.kv { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; line-height: 1.7; }
+.kv span:first-child { color: var(--text-2); }
+.kv span:last-child { font-family: var(--font-mono); font-size: 12px; }
+.demo-video {
+  position: relative;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--tint) 30%, var(--bg-elev));
+  border: 1px solid color-mix(in srgb, var(--tint) 55%, transparent);
+  min-height: 64px;
+  display: flex; align-items: center; justify-content: center;
+}
+.demo-video svg { width: 26px; height: 26px; fill: var(--tint); }
+.demo-video + .cap { margin-top: 6px; }
+.demo-video.blue  { background: color-mix(in srgb, var(--tint) 22%, var(--bg-elev)); border-color: color-mix(in srgb, var(--tint) 45%, transparent); }
+.demo-video.blue svg { fill: var(--tint); }
+.demo-video.orange{ background: color-mix(in srgb, var(--orange) 24%, var(--bg-elev)); border-color: color-mix(in srgb, var(--orange) 45%, transparent); }
+.demo-video.orange svg { fill: var(--orange); }
+.cap { font-size: 12px; color: var(--text-2); margin: 6px 0; }
+.tag {
+  display: inline-block;
+  font: 600 10.5px var(--font-mono);
+  padding: 2px 8px; border-radius: var(--r-sm);
+  background: var(--bg-code); border: 1px solid var(--separator);
+  color: var(--text-2);
+}
+.demo-gauge { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; }
+.demo-gauge svg { width: 180px; height: 108px; }
+.demo-gauge .track { stroke: var(--separator); }
+.demo-gauge .prog  { stroke: var(--tint); }
+.demo-gauge .knob  { fill: var(--tint); }
+.demo-glow {
+  height: 48px; border-radius: var(--r-md);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--orange) 35%, var(--bg-elev)),
+    color-mix(in srgb, var(--purple) 35%, var(--bg-elev)));
+  display: flex; align-items: center; justify-content: center;
+  font: 600 12px var(--font-mono);
+  color: var(--text);
+}
+.demo-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--separator);
+  font-weight: 600; font-size: 14px;
+}
+.demo-nav .menu-btn {
+  width: 26px; height: 26px; border-radius: var(--r-sm);
+  background: var(--bg-code); border: 1px solid var(--separator);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 12px var(--font-mono); color: var(--text-2);
+}
+.demo-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+.demo-pane {
+  border-radius: var(--r-md);
+  padding: 14px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-weight: 600; font-size: 13px;
+}
+.demo-pane.blue   { background: color-mix(in srgb, var(--tint) 14%, var(--bg-elev)); }
+.demo-pane.orange { background: color-mix(in srgb, var(--orange) 14%, var(--bg-elev)); }
+.demo-pane svg { width: 26px; height: 26px; }
+.demo-pane.blue svg   { fill: var(--tint); }
+.demo-pane.orange svg { fill: var(--orange); }
+.demo-areas {
+  position: relative;
+  height: 240px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--separator);
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--purple) 14%, var(--bg-elev)),
+      color-mix(in srgb, var(--purple) 4%, var(--bg-elev)));
+  overflow: hidden;
+}
+.demo-areas .row {
+  position: absolute;
+  left: 6%; top: 12%;
+  width: 34%;
+  background: var(--bg-elev);
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.demo-areas .row + .row { top: 34%; }
+.demo-areas .row + .row + .row { top: 56%; }
+.demo-areas .fold {
+  position: absolute; left: 58%; top: 0; bottom: 0;
+  width: 11%;
+  border-left: 2px dashed var(--red);
+  border-right: 2px dashed var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+.demo-areas .fold span {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  font: 600 9.5px var(--font-mono); color: var(--red); white-space: nowrap;
+}
+.demo-areas .occl {
+  position: absolute;
+  width: 34%; height: 14px;
+  border: 2px solid var(--tint);
+  border-radius: 6px;
+}
+.demo-areas .occl.top    { left: 16%; top: 10px; }
+.demo-areas .occl.bottom { left: 52%; top: 28px; }
+.demo-areas .summary-pill {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+  font: 600 10.5px var(--font-mono);
+  background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
+  border: 1px solid var(--separator);
+  border-radius: var(--r-pill);
+  padding: 3px 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.demo-bar { display: grid; grid-template-columns: 40px 1fr; gap: 10px; }
+.vbar {
+  background: color-mix(in srgb, var(--text-3) 26%, var(--bg-elev));
+  border-radius: 8px;
+  padding: 10px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  min-height: 150px;
+}
+.vbar span {
+  width: 20px; height: 20px; border-radius: 6px;
+  background: var(--bg-elev);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 10px var(--font-mono); color: var(--text-2);
+}
+.demo-side {
+  background: var(--bg-elev);
+  border: 1px solid var(--separator);
+  border-radius: var(--r-md);
+  padding: 12px;
+  font-size: 12px;
+}
+.demo-side .sw {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.demo-side .sw .on {
+  width: 30px; height: 17px; border-radius: var(--r-pill);
+  background: var(--bg-code);
+  border: 1px solid var(--separator);
+  position: relative;
+}
+.demo-side .sw .on::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--text-3);
+}
+.demo-side .items { display: flex; flex-direction: column; gap: 6px; }
+.demo-side .items .it {
+  background: var(--bg-alt); border-radius: 6px;
+  padding: 6px 8px; color: var(--text-2);
+}
+.demo-side .sheet {
+  margin-top: 12px;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-alt);
+}
+.demo-side .sheet .s-title { font-weight: 600; font-size: 12.5px; }
+.demo-side .sheet .s-sub { color: var(--text-2); font-size: 11.5px; margin: 4px 0 8px; }
+.demo-side .sheet button {
+  font: 600 11px var(--font-text);
+  background: var(--tint-fill); color: var(--on-tint);
+  border: none; border-radius: 6px; padding: 5px 12px; cursor: pointer;
+}
+.demo-scenes { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
+.demo-scenes .inner {
+  background: var(--bg-elev); border: 1px solid var(--separator);
+  border-radius: var(--r-md); padding: 10px 12px;
+  font-size: 12px;
+}
+.demo-scenes .outer {
+  background: color-mix(in srgb, var(--purple) 10%, var(--bg-elev));
+  border: 1px dashed color-mix(in srgb, var(--purple) 55%, transparent);
+  border-radius: var(--r-md);
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  font-size: 11px;
+}
+.demo-scenes .prompter {
+  flex: 1;
+  background: var(--bg-elev);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.7;
+  overflow: hidden;
+}
+.info-block {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--text-2);
+  background: var(--bg-code);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+.pose-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.pose { border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--bg-alt); padding: 14px; }
+.pose .pose-label { font: 600 11px var(--font-text); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin: 0 0 8px; }
+.pose svg { display: block; width: 100%; height: auto; }
+.pose .dims { font: 500 11px var(--font-mono); color: var(--text-3); margin-top: 8px; }
+@media (max-width: 900px) {
+  .pose-row, .demo-scenes { grid-template-columns: 1fr; }
+  .demo-areas .fold { left: 46%; }
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="テーマ切り替え">
+  <span class="dot"></span><span id="themeLabel">自動</span>
+</button>
+
+<div class="article">
+
+  <header class="doc-header">
+    <p class="eyebrow">DuoLab · Demo Guide</p>
+    <h1>DuoLab — ヒンジ・2面レイアウト検証アプリのタブガイド</h1>
+    <p class="abstract">
+      DuoLab は iPhone のヒンジ・2面（折りたたみ）フォームファクタを iOS 27.1 で検証するためのサンプルアプリ。
+      7 つのタブのそれぞれが、新しい API のどれをどの目的でデモしているかを、
+      SwiftUI と UIKit の両側からこの 1 ページでまとめる。
+    </p>
+    <div class="meta">
+      <span><strong>対象</strong> DuoLab（iOS 27.1・ヒンジ対応 iPhone）</span>
+      <span><strong>構成</strong> 7 タブ + Companion ウィンドウ</span>
+      <span><strong>検証</strong> iOS シミュレータ実測（2026-09-23）</span>
+    </div>
+  </header>
+
+  <!-- ============================ 概要 ============================ -->
+  <section class="doc-section" id="overview-tab" data-title="概要">
+    <h2>概要</h2>
+    <div class="summary">
+      <p class="summary-label">要点</p>
+      <ul>
+        <li>各タブは新しいヒンジ API を 1 つずつ実証するデモで、レイアウト判断（size class / Reserved Region）とインタラクション（Hinge）を役割分けて設計している。</li>
+        <li>Overview / Two Pane / Regions / Bar / Scenes は SwiftUI 側 API、UIKit タブが同じ機能を UIKit 側 API で実装。両側の実装差を比較できるのがこのアプリの狙い。</li>
+        <li>ヒンジの pose（閉じた外側 / 開いた内側）で表示が変わるのが前提なので、全タブが open / closed 両方で表示確認済み（2026-09-23 巡回、sim）。</li>
+        <li>実機でしか観測できない 3 件（fold 別角度 / StandBy・アプリエクステンション / カメラ撮影・<code class="inline">onAvailabilityChange</code>）は残作業。</li>
+      </ul>
+    </div>
+    <p class="lede">DuoLab は 1 画面に 7 タブを並べた TabView（<code class="inline">DuoLab/DuoLabApp.swift</code>）で構成される。</p>
+    <table class="params">
+      <thead><tr><th>タブ</th><th>ファイル</th><th>デモ内容</th><th>主な API</th></tr></thead>
+      <tbody>
+        <tr><td>Overview</td><td class="type">OverviewPage.swift</td><td>size class・display・safe area・角の観測</td><td class="type">\.\.horizontalSizeClass / \.\.concentricCornerRadii</td></tr>
+        <tr><td>Hinge</td><td class="type">HingePage.swift</td><td>ヒンジ status / angle の live 観測 + エフェクト</td><td class="type">onHingeChange / DeviceHinge</td></tr>
+        <tr><td>Two Pane</td><td class="type">TwoPanePage.swift</td><td>2 面レイアウト（split / overlay）の並べ方</td><td class="type">ArrangementView / \.\.arrangementViewStyle</td></tr>
+        <tr><td>Regions</td><td class="type">ReservedRegionsPage.swift</td><td>折り目・カメラの予約領域クエリと退避配置</td><td class="type">reservedRegions(kind:options:)</td></tr>
+        <tr><td>Bar</td><td class="type">VerticalBarPage.swift</td><td>縦バー（toolbar の側面縦積み）opt-in / out</td><td class="type">axisBehavior / toolbarVerticalBehavior</td></tr>
+        <tr><td>Scenes</td><td class="type">ScenesPage.swift</td><td>複数ウィンドウ + カメラ撮影中の外側 accessory</td><td class="type">openWindow / sceneAccessory</td></tr>
+        <tr><td>UIKit</td><td class="type">UIKitDemo.swift</td><td>同じ 7 機能を UIKit API 版で 1 画面に</td><td class="type">UIHingeInteraction / UIArrangementViewController …</td></tr>
+      </tbody>
+    </table>
+    <div class="aside aside-tip">
+      <p class="aside-label">前提</p>
+      <p>本アプリはヒンジ対応 iPhone のシミュレータ / 実機で動く（<code class="inline">@available(iOS 27.1, *)</code>）。
+      従来の 1 画面 iPhone ではヒンジ関連 API が値を返さないため、Overview 以外の多くの値は <code class="inline">—</code> や <code class="inline">no hinge</code> になる。これは不具合でなく設計。</p>
+    </div>
+  </section>
+
+  <!-- ============================ Overview ============================ -->
+  <section class="doc-section" id="tab-overview" data-title="Overview">
+    <h2>Overview<span class="badge-beta">観測</span></h2>
+    <p class="lede">「今、この画面はどんな形か」を 3 つのグループボックスで観測するタブ。このフォームファクタでのレイアウト判断の基礎を、orientation に頼らず観るデモ。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Overview 画面（内側 open）</p>
+      <div class="demo-rows">
+        <div class="demo-box">
+          <p class="b-title">Size Class（orientation 非依存で判断）</p>
+          <div class="kv"><span>horizontal</span><span>regular</span></div>
+          <div class="kv"><span>vertical</span><span>regular</span></div>
+          <div class="kv"><span>判定</span><span>wide / inner-like（2 面レイアウト可用）</span></div>
+        </div>
+        <div class="demo-box">
+          <p class="b-title">Display（UIScreen.main を参照しない）</p>
+          <div class="kv"><span>logical</span><span>2007 × 2853 pt</span></div>
+          <div class="kv"><span>scale</span><span>3.00x（traitCollection.displayScale）</span></div>
+          <div class="kv"><span>safeArea</span><span>T 0 / R 0 / B 34 / L 0</span></div>
+          <div class="kv"><span>orientation</span><span>faceUp</span></div>
+          <div class="kv"><span>ifaceOrient</span><span>landscapeRight</span></div>
+        </div>
+        <div class="demo-box">
+          <p class="b-title">Concentricity（角の追従）</p>
+          <div class="kv"><span>corner radii</span><span>TL 0 / TR 0 / BR 0 / BL 0（直線コンテナ内）</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <ul class="plain">
+      <li><strong>size class で判断する</strong> — 実測（2026-09-21、sim）: 内側（open）= regular×regular → <code class="inline">wide</code>、外側（closed）= <strong>h-compact / v-regular</strong>（従来 iPhone portrait と同型）。ヒンジ pose の変化は orientation 変化として現れないため、orientation ではなく size class で分岐する。</li>
+      <li><strong>UIScreen.main を使わない</strong> — 2 ディスプレイのデバイスでは「main」がどちらを指すか不確実なので、<code class="inline">\.displayScale</code>（traitCollection.displayScale）で取得する。</li>
+      <li><strong>safe area は 4 辺独立</strong> — 左右の inset が等しいと仮定せず T / R / B / L を個別に観測する。</li>
+      <li><strong>orientation の報告値は毎 body で読み直す</strong> — <code class="inline">@State</code> + 通知の組み合わせは pose のみ変化（orientation 非変化）すると stale になるため、GeometryReader の再評価で読み直す。delegate で <code class="inline">beginGeneratingDeviceOrientationNotifications()</code> を有効化。</li>
+      <li><strong>Concentricity</strong> — <code class="inline">\.concentricCornerRadii</code> で 4 角の半径を観測。丸いコンテナ内では追従半径を返す。</li>
+    </ul>
+  </section>
+
+  <!-- ============================ Hinge ============================ -->
+  <section class="doc-section" id="tab-hinge" data-title="Hinge">
+    <h2>Hinge<span class="badge-beta">インタラクション</span></h2>
+    <p class="lede"><code class="inline">onHingeChange</code>（SwiftUI）でヒンジの status / angle を観測し、それらを<strong>インタラクション・エフェクト</strong>に使うデモ。ヒンジデータでレイアウトを直接変えないのが設計の原則。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Hinge 画面（open・半開 128° 相当）</p>
+      <div class="demo-rows">
+        <div class="demo-box">
+          <p class="b-title">Hinge Status</p>
+          <div class="cap" style="font-size:15px; font-weight:600;">fully open</div>
+          <div class="cap">ヒンジデータはインタラクション・エフェクト用です。レイアウト判断は Arrangement / Reserved Regions を使います。</div>
+        </div>
+        <div class="demo-box">
+          <p class="b-title">Hinge Angle（live）</p>
+          <div class="demo-gauge">
+            <svg viewBox="0 0 220 128" aria-hidden="true">
+              <path class="track" d="M 60 60 A 50 50 0 0 1 160 60" fill="none" stroke-width="10"/>
+              <path class="prog" d="M 60 60 A 50 50 0 0 1 152 35" fill="none" stroke-width="10" stroke-linecap="round"/>
+              <circle class="knob" cx="152" cy="35" r="4"/>
+            </svg>
+            <div class="cap" style="font-family:var(--font-mono); font-size:12px;">2.226 rad&nbsp;&nbsp;(≈ 127.3°)</div>
+          </div>
+        </div>
+        <div class="demo-box">
+          <p class="b-title">Driven Effect</p>
+          <div class="demo-glow">intensity 71%</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing"><span class="c">// 2 引数（old, new）のシグネチャ</span>
+<span class="f">onHingeChange</span> { _, context <span class="k">in</span>
+    hinge = context.hinge   <span class="c">// angle: 0 rad（閉）… π rad（開）</span>
+}</pre>
+    <ul class="plain">
+      <li><strong>半円ゲージ</strong> — ラジアンを 0…180° に正規化して Arc で描く。SwiftUI の <code class="inline">Shape.path(in:)</code> は親 frame 座標と一致せず描画がずれる（実スクショで弧の底がはみ出していた）ため、Canvas に置換して frame 領域をクリップし frame 局座標で描画する。2026-09-23 巡回で修正・目視確認済み。</li>
+      <li><strong>Driven Effect</strong> — ヒンジ角度で明るさが変わる装飾。半開（live）のときだけ発光し、angle を駆動源にしたエフェクトの例。</li>
+      <li><strong>status の比較</strong> — SwiftUI <code class="inline">DeviceHinge.Status</code> は struct（closed / partiallyOpen / fullyOpen の static var、unknown なし）なので switch せず <code class="inline">==</code> 比較で判定する。unknown があるのは UIKit 側 <code class="inline">UIHinge.Status</code>（4 case enum、UIKit タブ参照）。</li>
+    </ul>
+    <div class="aside aside-important">
+      <p class="aside-label">役割分担（このアプリの原則）</p>
+      <p>ヒンジデータ（status / angle）は<strong>インタラクション・エフェクト専用</strong>。レイアウト判断は Arrangement（Two Pane）と Reserved Regions（Regions）で行う。ヒンジ角度にレイアウトを直接紐づけると、半開角度の幅（DeviceHub では Book=128° のみ観測）で挙動が変わって制御不能になる。</p>
+    </div>
+  </section>
+
+  <!-- ============================ Two Pane ============================ -->
+  <section class="doc-section" id="tab-twopane" data-title="Two Pane">
+    <h2>Two Pane<span class="badge-beta">レイアウト</span></h2>
+    <p class="lede"><code class="inline">ArrangementView</code>（split / overlay）で primary・secondary の 2 面を並べるタブ。toolbar ボタンで <strong>auto → overlay → split</strong> の 3 態を循環させ、自動判定の挙動を確認する。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Two Pane（split・上下）</p>
+      <div class="demo-rows">
+        <div class="demo-box" style="background:color-mix(in srgb, var(--tint) 7%, var(--bg-elev));">
+          <div class="demo-video blue"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="cap" style="font-weight:600; text-align:center; margin-top:8px;">Primary: Now Playing</div>
+        </div>
+        <div class="demo-box" style="background:color-mix(in srgb, var(--orange) 7%, var(--bg-elev));">
+          <div class="cap" style="font-weight:600; margin-bottom:8px;">Secondary: Up Next</div>
+          <div class="demo-rows">
+            <div class="cap">Up Next 1 / 2 / 3 / 4 …（スクロールで到達可能）</div>
+          </div>
+        </div>
+      </div>
+      <p class="cap" style="text-align:right;">toolbar: <span class="tag">Style: auto → split</span>&nbsp;&nbsp;右下: <span class="tag">zIndex 0</span></p>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing">ArrangementView {
+    PlayerPane()
+} <span class="k">secondary</span>: {
+    UpNextPane()
+}
+<span class="f">.arrangementViewStyle</span>(<span class="t">.split</span>.axes(<span class="t">.vertical</span>))
+<span class="c">// または .overlay.axes(.vertical)</span></pre>
+    <ul class="plain">
+      <li><strong>auto 判定</strong> — コンテナ高（safe area 済み、<code class="inline">onGeometryChange</code> で実測）が閾値 <strong>600pt 未満なら overlay、以上なら split</strong>。toolbar ボタンで手動指定も可能。</li>
+      <li><strong>実測の落とし穴</strong> — 2026-09-22 実測: <code class="inline">.split.axes(.vertical)</code> は<strong>pane が収まらなければ secondary を非表示にする</strong>。video box（16:9）の理想高が 2 段 slot を超える landscape（867×553pt）で secondary が消滅していた → video box に高さ上限 200pt（pane の理想高を有界化）＋ コンテナ高で自動切替して解消済み。</li>
+      <li><strong>zIndex 表示</strong> — <code class="inline">\.overlayArrangementZIndex</code> を画面下隅に表示。overlay で折りたたまれると値が変化するため、live に追従していることを画面で確認できる。</li>
+    </ul>
+  </section>
+
+  <!-- ============================ Regions ============================ -->
+  <section class="doc-section" id="tab-regions" data-title="Regions">
+    <h2>Regions<span class="badge-beta">レイアウト</span></h2>
+    <p class="lede"><code class="inline">reservedRegions</code> で折り目（division）・カメラ（occlusion）の予約領域をクエリし、content を折り目を横断しないよう<strong>退避（displacement）</strong>配置するタブ。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Regions（closed・外側）</p>
+      <div class="demo-areas">
+        <div class="occl top"></div>
+        <div class="occl bottom"></div>
+        <div class="row">Content row 0 — avoids the crease</div>
+        <div class="row">Content row 1 — avoids the crease</div>
+        <div class="row">Content row 2 — avoids the crease</div>
+        <div class="fold"><span>division</span></div>
+        <div class="summary-pill">division 0（active 0） / occlusion 2（active 2）</div>
+      </div>
+      <p class="cap">青枠 = occlusion（カメラ孔。status bar の載る領域そのもの）／ 赤破線 = division（折り目）／ 下隅 = live summary</p>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing"><span class="k">let</span> divisions = proxy.reservedRegions(<span class="k">kind</span>: <span class="t">.division</span>, options: includeInactive ? [<span class="t">.includeInactive</span>] : [])
+<span class="k">let</span> occlusions = proxy.reservedRegions(<span class="k">kind</span>: <span class="t">.occlusion</span>, options: includeInactive ? [<span class="t">.includeInactive</span>] : [])
+<span class="k">let</span> clear = foldClearRect(divisions: divisions, container: proxy.size)
+<span class="c">// content は foldClearRect で広い側へ丸ごと移動（displacement）</span></pre>
+    <ul class="plain">
+      <li><strong>displacement</strong> — 折り目バンドは表示領域の中央を横切り、方向は pose に依存する（縦 / 横）。content 全体を「折り目を横断しないクリア側」（広い側）の矩形に丸ごと配置し、行が折り目をまたがないようにする。</li>
+      <li><strong>occlusion（カメラ孔）ラベル非表示化</strong> — occlusion region は status bar（時刻・Wi-Fi）の載る領域そのもので、closed pose では上下 2 枚積まるため枠内のどこに置いてもラベルが図形と被る。2026-09-23 巡回でラベルを非表示にし、枠線（青）と summary の数だけで可視化。division のラベルは status bar と被らないため枠内に出す。</li>
+      <li><strong>inactive toggle</strong> — <code class="inline">.includeInactive</code> を切り替えて「折りたたまれていないとき inactive（幅 0）」になる挙動を確認する。</li>
+      <li><strong>live summary</strong> — 下隅のピルが件数と active 数を常時表示（open = division 1（active 0） / occlusion 2（active 1）、closed = division 0 / occlusion 2（active 2））。</li>
+    </ul>
+  </section>
+
+  <!-- ============================ Bar ============================ -->
+  <section class="doc-section" id="tab-bar" data-title="Bar">
+    <h2>Bar<span class="badge-beta">toolbar</span></h2>
+    <p class="lede">ナビゲーションバーのボタンが側面に<strong>縦積み（縦バー）</strong>になる opt-in / opt-out の動作を確認するタブ。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Vertical Bar（open・縦バー opt-in）</p>
+      <div class="demo-bar">
+        <div class="vbar" title="縦バー（側面）">
+          <span title="gear（opt-in）">⚙</span>
+          <span title="share（opt-in）">⇧</span>
+          <span title="Done（opt-in）">✓</span>
+        </div>
+        <div class="demo-side">
+          <div class="sw"><span>Disable vertical bar（opt-out）</span><span class="on"></span></div>
+          <div class="items">
+            <div class="it">Item 0 — square.grid.2x2</div>
+            <div class="it">Item 1 — square.grid.2x2</div>
+            <div class="it">Item 2 — square.grid.2x2 …（スクロール）</div>
+          </div>
+          <div class="sheet">
+            <p class="s-title">opt-in pressed</p>
+            <p class="s-sub">gear（縦バー toolbar ボタン）</p>
+            <button>閉じる</button>
+          </div>
+        </div>
+      </div>
+      <p class="cap">左 = 側面の縦バー（⚙ gear / ⇧ share / ✓ Done）／ 右 = 本体（opt-out トグル + 一覧 + 押下時の sheet）</p>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing"><span class="t">ToolbarItemGroup</span>(placement: <span class="t">.topBarLeading</span>) {
+    Button { … } label: { Image(systemName: <span class="s">"gear"</span>) }
+    Button { … } label: { Image(systemName: <span class="s">"square.and.arrow.up"</span>) }
+}
+<span class="f">.axisBehavior</span>(<span class="t">.verticalPreferred</span>)   <span class="c">// 項目が縦バーを好む</span>
+<span class="c">// opt-out（全画面再生的な UI）</span>
+<span class="f">.toolbarVerticalBehavior</span>(disableBar ? <span class="t">.disabled</span> : <span class="t">.automatic</span>)</pre>
+    <ul class="plain">
+      <li><strong>opt-in</strong> — <code class="inline">axisBehavior(.verticalPreferred)</code> は <strong>ToolbarContent（group 本体）への modifier</strong>。<code class="inline">ToolbarItemGroup</code> の中身は <code class="inline">@ViewBuilder</code> なので各 item に付けると制約を満たさない。最新 SDK 再ビルド + 標準 NavigationStack のバーを使用する。</li>
+      <li><strong>opt-out</strong> — <code class="inline">toolbarVerticalBehavior(.disabled)</code> で縦バー全体を無効化。</li>
+      <li><strong>可視反応の代わり</strong> — 縦バーの opt-in ボタンは AX action が空で tap の可視反応を観測できなかった（audit #5）ため、押下した項目名を sheet（detent 25%）で出して確認する。</li>
+    </ul>
+    <div class="aside aside-note">
+      <p class="aside-label">操作メモ（シミュレータ）</p>
+      <p>縦バー opt-in ボタンは DeviceHub ミラーの click / axpress では不感。sim 本体の <code class="inline">xcb_snapshot_ui</code> → <code class="inline">xcb_tap</code>（elementRef）で有効。2026-09-23 巡回で sheet の出現を確認済み。</p>
+    </div>
+  </section>
+
+  <!-- ============================ Scenes ============================ -->
+  <section class="doc-section" id="tab-scenes" data-title="Scenes">
+    <h2>Scenes<span class="badge-beta">複数シーン</span></h2>
+    <p class="lede">複数シーン（複数インスタンス対応 iPhone の副ウィンドウ）と Scene Accessory（カメラ撮影中の外側ディスプレイへ副コンテンツ）のデモ。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">Scenes（open・teleprompter on）</p>
+      <div class="demo-scenes">
+        <div class="inner">
+          <p class="b-title" style="font:600 11px var(--font-text); letter-spacing:0.04em; color:var(--text-3); margin:0 0 6px;">内側ディスプレイ（主シーン）</p>
+          <div class="kv"><span>Multi-window</span><span>Open companion window</span></div>
+          <div class="kv"><span>Camera capture</span><span>on</span></div>
+          <div class="kv"><span>accessory available</span><span>yes</span></div>
+          <div class="kv"><span>content</span><span>TeleprompterView → outer</span></div>
+        </div>
+        <div class="outer">
+          <p class="b-title" style="font:600 11px var(--font-text); letter-spacing:0.04em; color:var(--text-3); margin:0;">外側ディスプレイ（accessory）</p>
+          <div class="prompter">The quick brown fox 0 jumps over the lazy dog.
+
+The quick brown fox 1 jumps over the lazy dog.
+
+The quick brown fox 2 …（スクロール）</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing"><span class="c">// アプリ定義（DuoLabApp.swift）</span>
+WindowGroup(<span class="s">"Companion"</span>, id: <span class="s">"companion"</span>) { CompanionView() }
+<span class="c">// iOS で副ウィンドウを作るのは Window（macOS/visionOS のみ）ではなく WindowGroup(id:)</span></pre>
+    <ul class="plain">
+      <li><strong>Companion ウィンドウ</strong> — <code class="inline">openWindow(id:)</code> は iOS で<strong>非 throw</strong>（throw 版は macOS 15+ のみ）。外側ディスプレイでは新ウィンドウを作れないため、利用不可な場所では要求が<strong>サイレントに無視</strong>される。明示的な fallback（<code class="inline">UIWindowScene.ActivationAction</code> の alternate）は UIKit タブで実演。</li>
+      <li><strong>Scene Accessory</strong> — <code class="inline">CameraCaptureAccessory</code> + <code class="inline">onAvailabilityChange</code>。カメラ撮影中の外側ディスプレイへ teleprompter を出す。toolbar の <code class="inline">Prompter: on/off</code> で on/off を切り替える。</li>
+    </ul>
+    <div class="aside aside-warning">
+      <p class="aside-label">実機待ちの残作業</p>
+      <p>UIMenu 項目 tap（alternate の発火）と companion ウィンドウの実表示、<code class="inline">onAvailabilityChange</code> の実機カメラ方向はシミュレータでは観測できず、実機待ち。シミュレータでは accessory available = no。</p>
+    </div>
+  </section>
+
+  <!-- ============================ UIKit ============================ -->
+  <section class="doc-section" id="tab-uikit" data-title="UIKit">
+    <h2>UIKit<span class="badge-beta">UIKit 版</span></h2>
+    <p class="lede">SwiftUI 側 API と同じ機能を <strong>UIKit 側 API</strong>で 1 画面（<code class="inline">UIKitDemo</code>・UIViewController）にまとめたタブ。SwiftUI / UIKit の実装差を比較できる。</p>
+
+    <h3>デモの構成</h3>
+    <div class="demo">
+      <p class="demo-title">UIKit Demo（closed・外側）</p>
+      <div class="demo-nav">UIKit Demo<span class="menu-btn" title="UIMenu: Open Companion Window">≡</span></div>
+      <div class="demo-split">
+        <div class="demo-pane blue"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-2 14.5v-9l6 4.5z"/></svg>Primary</div>
+        <div class="demo-pane orange"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-2 14.5v-9l6 4.5z"/></svg>Secondary</div>
+      </div>
+      <div class="info-block">hinge: closed
+angle 0.00 rad
+fold width 0 pt
+vBar edge: unspecified
+forward cameras: none
+activation: idle
+scale: 3.00</div>
+    </div>
+
+    <h3>実装のポイント</h3>
+    <pre class="listing"><span class="c">// UIHingeInteraction は NS_SWIFT_UI_ACTOR（= MainActor 分離）。</span>
+<span class="c">// self を capture するので viewDidLoad（main）内で生成し、</span>
+<span class="c">// プロパティ初期化子で生成しない（self 未形成の落とし穴）。</span>
+<span class="k">let</span> interaction = <span class="t">UIHingeInteraction</span> { [weak self] _, update <span class="k">in</span>
+    <span class="c">/* status / angle を保存し、view.setNeedsLayout() */</span>
+}
+view.<span class="f">addInteraction</span>(interaction)</pre>
+    <table class="params">
+      <thead><tr><th>API</th><th>観測 / 使用</th></tr></thead>
+      <tbody>
+        <tr><td class="param">UIHingeInteraction</td><td>view 付与で status / angle の live 更新。handler は main 上で実行（NS_SWIFT_UI_ACTOR）</td></tr>
+        <tr><td class="param">UIHinge.Status</td><td>4 case の enum（unknown 含む）→ switch 可能。SwiftUI の struct と異なる点</td></tr>
+        <tr><td class="param">UIArrangementViewController</td><td>primary / secondary に VC を配置し、UISplitArrangement（axes(.horizontal)）で並べる</td></tr>
+        <tr><td class="param">view.reservedRegions(kind:)</td><td>active な division の幅と margin を計測（fold width 表示）</td></tr>
+        <tr><td class="param">verticalBarEdge</td><td>registerForTraitChanges の trait 変更通知で edge（unspecified / leading / trailing）を追跡</td></tr>
+        <tr><td class="param">UIWindowScene.ActivationAction</td><td>new window 要求。利用不可な場所では alternate（「Window unavailable here」）に切替 — 明示的な fallback の例</td></tr>
+        <tr><td class="param">AVCaptureDeviceDirectionCoordinator</td><td>内外の ultra-wide カメラの「向き」変化を追跡（forward-facing camera 表示）</td></tr>
+        <tr><td class="param">UICornerConfiguration</td><td>.containerConcentric() で角の追従（SwiftUI の concentricCornerRadii に相当）</td></tr>
+        <tr><td class="param">displayScale</td><td>traitCollection.displayScale（UIScreen.main.scale の置換先）</td></tr>
+      </tbody>
+    </table>
+    <div class="aside aside-note">
+      <p class="aside-label">表示メモ</p>
+      <p>nav メニュー（companion 要求）とタイトルは、表示される nav bar の root（arrangementVC）側にセットする（self の item は子 VC の非表示 bar に出ない）。情報ラベルは safeArea.top + 60pt で、closed pose の横長外側でタイトルと被らないようにしてある。</p>
+    </div>
+  </section>
+
+  <!-- ============================ pose / buffer ============================ -->
+  <section class="doc-section" id="pose" data-title="pose とバッファ">
+    <h2>pose とバッファ</h2>
+    <p class="lede">検証の前提。ヒンジの pose（閉じ / 開き）でどの画面が使え、シミュレータのスクリーンショットはどこを撮ればよいか。</p>
+
+    <div class="pose-row">
+      <div class="pose">
+        <p class="pose-label">closed（閉じた外側）</p>
+        <svg viewBox="0 0 300 190" role="img" aria-label="closed: 外側のみ表示">
+          <rect x="120" y="20" width="60" height="150" rx="12" fill="none" stroke="var(--tint)" stroke-width="2.5"/>
+          <circle cx="150" cy="42" r="4" fill="none" stroke="var(--tint)" stroke-width="2"/>
+          <text x="150" y="105" text-anchor="middle" font-size="11" fill="var(--text-2)" font-family="var(--font-mono)">outer</text>
+        </svg>
+        <p class="dims">外側バッファ 1398×2034（portrait）</p>
+      </div>
+      <div class="pose">
+        <p class="pose-label">open（開いた内側）</p>
+        <svg viewBox="0 0 300 190" role="img" aria-label="open: 内側が主表示、外側が副">
+          <rect x="40" y="20" width="110" height="150" rx="10" fill="none" stroke="var(--text-3)" stroke-width="2"/>
+          <rect x="152" y="20" width="110" height="150" rx="10" fill="none" stroke="var(--tint)" stroke-width="2.5"/>
+          <text x="95" y="100" text-anchor="middle" font-size="11" fill="var(--text-3)" font-family="var(--font-mono)">outer</text>
+          <text x="207" y="100" text-anchor="middle" font-size="11" fill="var(--text-2)" font-family="var(--font-mono)">inner</text>
+        </svg>
+        <p class="dims">内側バッファ 2853×2007（landscape）</p>
+      </div>
+    </div>
+
+    <table class="params">
+      <thead><tr><th>pose</th><th>表示</th><th>size class（実測）</th><th>スクショ（simctl io）</th></tr></thead>
+      <tbody>
+        <tr><td>closed</td><td>外側のみ（従来 iPhone portrait 同型）</td><td class="type">h-compact / v-regular</td><td class="type">--display=1 → 1398×2034</td></tr>
+        <tr><td>open</td><td>内側が主、外側が副</td><td class="type">regular / regular</td><td class="type">--display=3 → 2853×2007</td></tr>
+      </tbody>
+    </table>
+    <div class="aside aside-note">
+      <p class="aside-label">巡回のやり方</p>
+      <p>pose 変更後 2 秒待ってから <code class="inline">xcrun simctl io &lt;UDID&gt; screenshot --display=1|3</code> を撮り、PNG を画像として開いて目視確認する。UI 判定は vision 推測ではなく実スクショで行うのがこのリポジトリの規約（SEED.md）。</p>
+    </div>
+  </section>
+
+  <!-- ============================ 参照 ============================ -->
+  <section class="doc-section" id="reference" data-title="API 対照表">
+    <h2>SwiftUI ↔ UIKit API 対照表</h2>
+    <p class="lede">同じ機能を 2 つの実装体系で表した対応表。DuoLab の各タブはこの表の SwiftUI 列、UIKit タブが UIKit 列をデモしている。</p>
+    <table class="params" style="table-layout:fixed; width:100%; font-size:13px;">
+      <colgroup>
+        <col style="width:10%"><col style="width:25%"><col style="width:27%"><col style="width:38%">
+      </colgroup>
+      <thead><tr><th>機能</th><th>SwiftUI（各タブ）</th><th>UIKit（UIKit タブ）</th><th>違い</th></tr></thead>
+      <tbody>
+        <tr><td>ヒンジ</td><td class="type">onHingeChange / DeviceHinge</td><td class="type">UIHingeInteraction / UIHinge</td><td>Status は struct（==）/ enum（switch）。UIKit 側は MainActor 分離</td></tr>
+        <tr><td>2 面レイアウト</td><td class="type">ArrangementView</td><td class="type" style="font-size:11.5px;">UIArrangementViewController</td><td>SwiftUI 側は content、UIKit 側は VC を配置</td></tr>
+        <tr><td>予約領域</td><td class="type" style="font-size:11.5px;">GeometryProxy.reservedRegions</td><td class="type" style="font-size:11.5px;">view.reservedRegions(kind:)</td><td>—</td></tr>
+        <tr><td>縦バー</td><td class="type">axisBehavior / toolbarVerticalBehavior</td><td class="type">verticalBarEdge（trait）</td><td>SwiftUI が opt-in / out、UIKit は状態の観測</td></tr>
+        <tr><td>複数ウィンドウ</td><td class="type">openWindow / WindowGroup(id:)</td><td class="type">UIWindowScene.ActivationAction</td><td>iOS の openWindow は非 throw（サイレント無視）/ UIKit は alternate に切替</td></tr>
+        <tr><td>カメラ方向</td><td class="type">—</td><td class="type">AVCaptureDeviceDirectionCoordinator</td><td>UIKit 側のみのデモ</td></tr>
+        <tr><td>角の追従</td><td class="type">\.concentricCornerRadii</td><td class="type">UICornerConfiguration</td><td>—</td></tr>
+        <tr><td>display scale</td><td class="type">\.displayScale</td><td class="type">traitCollection.displayScale</td><td>UIScreen.main の非推奨に両方置換</td></tr>
+      </tbody>
+    </table>
+
+    <h3>残作業（実機待ち）</h3>
+    <ol class="steps">
+      <li><div><strong>fold の別角度</strong> — DeviceHub には専用ボタンが無いため Book=128° のみ観測。別の半開角度での挙動は実機待ち。</div></li>
+      <li><div><strong>StandBy / アプリエクステンション系</strong> — シミュレータでは観測できない。</div></li>
+      <li><div><strong>カメラ撮影・onAvailabilityChange の実機カメラ方向</strong> — sim では accessory available = no。teleprompter の外側描画ロジック自体は sim で確認済み。</div></li>
+    </ol>
+    <div class="aside aside-tip">
+      <p class="aside-label">確認済み</p>
+      <p>2026-09-23 巡回（sim）で、全 7 タブを open / closed 両 pose・内外バッファで再確認し、残っていた不具合（Regions の occlusion ラベル × status bar 重複）は解消済み。</p>
+    </div>
+  </section>
+
+  <footer class="pagefooter">
+    <span>DuoLab · タブガイド（docs/duolab-tabs.html）</span>
+    <span>ベース: Toshi Design System · single-page</span>
+  </footer>
+
+</div>
+
+<!-- ============================ Floating in-page menu ============================ -->
+<aside class="otp" aria-label="このページ内">
+  <p class="otp-title">このページ内</p>
+  <nav data-rail="otp"></nav>
+</aside>
+<button class="fab" id="fab" aria-label="ページ内メニューを開く">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="13" y2="17"/>
+  </svg>
+</button>
+<div class="fab-panel" id="fabPanel">
+  <p class="otp-title">このページ内</p>
+  <nav data-rail="fab"></nav>
+</div>
+
+<script>
+/* ============================================================
+   Theme — auto → light → dark の 3 状態トグル
+   ============================================================ */
+(function () {
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+  const SEQ = ['auto', 'light', 'dark'];
+  const NAMES = { auto: '自動', light: 'ライト', dark: 'ダーク' };
+  let mode = localStorage.getItem('tds-theme') || 'auto';
+  const browserTheme = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  function apply() {
+    if (mode === 'auto') {
+      root.dataset.theme = browserTheme();
+      root.dataset.themeMode = 'auto';
+    } else {
+      root.dataset.theme = mode;
+      root.dataset.themeMode = mode;
+    }
+    label.textContent = NAMES[mode];
+  }
+  btn.addEventListener('click', () => {
+    mode = SEQ[(SEQ.indexOf(mode) + 1) % SEQ.length];
+    localStorage.setItem('tds-theme', mode);
+    apply();
+  });
+  apply();
+})();
+
+/* ============================================================
+   Floating menu — .doc-section[id][data-title] から自動生成
+   ============================================================ */
+const sections = document.querySelectorAll('.doc-section[id][data-title]');
+const links = [...sections].map(s =>
+  `<a href="#${s.id}" data-spy="${s.id}">${s.dataset.title}</a>`).join('');
+document.querySelector('[data-rail="otp"]').innerHTML = links;
+document.querySelector('[data-rail="fab"]').innerHTML = links;
+
+/* Scrollspy */
+const visible = new Set();
+const spy = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) visible.add(e.target.id);
+    else visible.delete(e.target.id);
+  });
+  let current = null;
+  for (const s of sections) {
+    if (visible.has(s.id)) { current = s.id; break; }
+  }
+  if (current) {
+    document.querySelectorAll('[data-spy]').forEach(a => {
+      a.classList.toggle('is-current', a.dataset.spy === current);
+    });
+  }
+}, { rootMargin: '-20px 0px -55% 0px' });
+sections.forEach(s => spy.observe(s));
+
+/* Floating button（狭い画面のポップオーバー） */
+(function () {
+  const fab = document.getElementById('fab');
+  const panel = document.getElementById('fabPanel');
+  fab.addEventListener('click', e => { e.stopPropagation(); panel.classList.toggle('is-open'); });
+  document.addEventListener('click', e => {
+    if (!panel.contains(e.target)) panel.classList.remove('is-open');
+  });
+  panel.addEventListener('click', e => {
+    if (e.target.closest('a')) panel.classList.remove('is-open');
+  });
+})();
+
+/* Copy button — 全 pre.listing に自動付与 */
+(function () {
+  const ICON_COPY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="9" width="11" height="11" rx="2.5"/>
+    <path d="M5.5 15H4.8A1.8 1.8 0 0 1 3 13.2V4.8A1.8 1.8 0 0 1 4.8 3h8.4A1.8 1.8 0 0 1 15 4.8v.7"/></svg>`;
+  const ICON_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+
+  document.querySelectorAll('pre.listing').forEach(pre => {
+    const wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.setAttribute('aria-label', 'コードをコピー');
+    btn.innerHTML = ICON_COPY;
+    let timer = null;
+    const reset = () => {
+      clearTimeout(timer); timer = null;
+      btn.innerHTML = ICON_COPY;
+      btn.classList.remove('is-copied');
+    };
+    btn.addEventListener('click', async () => {
+      const code = pre.textContent.replace(/\s+$/, '');
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      clearTimeout(timer);
+      btn.innerHTML = ICON_DONE;
+      btn.classList.add('is-copied');
+      timer = setTimeout(reset, 1600);
+    });
+    wrap.addEventListener('mouseleave', () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = setTimeout(reset, 220);
+      }
+    });
+    wrap.appendChild(btn);
+  });
+})();
+</script>
+</body>
+</html>
