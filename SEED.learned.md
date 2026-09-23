@@ -9,5 +9,5 @@
 - 2026-09-23: sandbox 内の `swiftc` は `TMPDIR=$PWD/tmpdir -module-cache-path $PWD/tmpdir/mcache` を付ければ通る（`sandbox-exec: sandbox_apply` の警告は無害、exit 0）。docs/development.md の記述どおり。09-22 の「通らない」は module cache の既定パスが拒否されただけだった
 - 2026-09-22: `xcrun` の「couldn't create cache file /var/folders/…」は sandbox の TMPDIR 拒否で無害
 - 2026-09-23: UIMenu popup は app コンテンツとは別レイヤー（sim ミラー越しの CGEvent click は項目にも外側にも不感。27点 sweep で idle 不変）。メニュー開閉の検証はスクショ上の blob 増減でやる
-- 2026-09-23: 2026-09-23: 旧シム(6B8C075B)の「ミラー全面黒・appコンテンツ空」はシム単体の状態依存で、シムを作り直せば解消(新シム03AE0D2Cではfresh bootから内外content・ミラーaxtreeとも正常)。黒が出たら作り直しを先に試す
-- 2026-09-23: 2026-09-23: Scenesの「Prompter:on/off」ボタンはaxpressのneedle「Prompter」が自分自身に先頭一致して切替不能。on/off切替は「Camera capture」チェック(axpress "Camera capture")を使う
+- 2026-09-23: 旧シム(6B8C075B)の「ミラー全面黒・appコンテンツ空」はシム単体の状態依存で、シムを作り直せば解消(新シム03AE0D2Cではfresh bootから内外content・ミラーaxtreeとも正常)。黒が出たら作り直しを先に試す
+- 2026-09-23: Scenesの「Prompter:on/off」ボタンはaxpressのneedle「Prompter」が自分自身に先頭一致して切替不能。on/off切替は「Camera capture」チェック(axpress "Camera capture")を使う

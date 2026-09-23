@@ -193,8 +193,8 @@
 - **`xcb_session_set_defaults` の部分更新で `extraArgs`（配列）が古い値に置き換わる**ことがある。毎回**全キー（env・extraArgs・persist）を一緒に渡す**。
 - **この Mac に 2 つの Xcode がある。** `xcode-select` 既定 `/Applications/Xcode_27_1.app`（Duo 対応）。SDK パスは必ず `Xcode_27_1.app` 配下。
 - **素の bash の `xcodebuild` はこの sandbox では使えない**（`/var/folders` への書き込み拒否）。ビルドは xcb。`xcrun` の cache ファイル（`xcrun_db-*`）は拒否されるが無害（warning）。
-- **`simctl list devices` の UDID を推測しない**（`6B8C075B-0655-4C20-9CAD-ACB1A97B5EEC`、`simctl list` で確認）。`devicectl` はこの UDID をそのまま `--device` で使う。
-- **シミュレータ 2 台**（iOS 27.1）: `6B8C075B-…`（主）、`0F5B43CE-…`。他は iOS 27.0（DuoLab DT 27.1 と非互換）。
+- **`simctl list devices` の UDID を推測しない**（`simctl list` の現物で確認。2026-09-23 現在 `03AE0D2C-CE81-4F2F-9A76-8A1EA1960745`＝ユーザーが作り直した新シム。旧 `6B8C075B`・`0F5B43CE` は作り直しで消滅済み）。`devicectl` は現物 UDID をそのまま `--device` で使う。
+- **iPhone Duo シミュレータは 1 台**（iOS 27.1、`03AE0D2C-…`、Booted）。2026-09-23 にユーザーが作り直ししたため、この Mac の iOS 27.1 は Duo だけ（他は iPhone 18 Pro Max / 17e / Air の iOS 27.0、DuoLab DT 27.1 と非互換）。シム単体で全面黒が出たら作り直しが有効（SEED.learned.md）。
 - 内外の size class / 方向（9/22 で更新）: **内側 regular×regular（open,orientation=portrait 時 landscape 2853×2007 / 他 portrait 2007×2853）、外側 portrait = h-compact/v-regular / landscape = h-compact/v-compact**。orientation 判定は size class に置換（`supportedInterfaceOrientations` 非依存）。
 - ヒンジデータ（angle/status）は**インタラクション用**。レイアウトは Arrangement / Reserved Region。
 - **push は upstream 付きの単独 `git push`**（cd/&&/明示 refspec は素の sandbox に落ちる）。`gh --source/--push` は allowlist 外。
