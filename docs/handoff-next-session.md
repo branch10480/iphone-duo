@@ -179,6 +179,17 @@
 - **Hinge Status の複数行対応**は本セッション開始時に既に commit 済み（`d191d74` 説明文 `.fixedSize` + `25a027b` 文案日本語化）→ open 内側 `.tmpx/hinge_open2.png`（2 行 stable）で再確認のみ。
 - **残（実機待ち、変更なし）**: UIMenu 項目 tap（alternate 発火）、companion ウィンドウ実表示、`fold` 別角度、カメラ撮影。
 
+## 2026-09-23 巡回3（各画面の「本当に解消したか」念入り目視、再ビルド後）
+
+> ユーザー要求（「本当に解消できているか念入りに目視で各画面をチェックして、漏れがあれば修正して」）に沿い、`xcb_build_run_sim`（30.5s 成功）の後に **全 6 タブ × open/closed 両 pose・内外バッファ**を `simctl io screenshot --display=1/3` + `read_file` で再巡回。
+
+- **Regions の occlusion ラベル×status bar 重複が再発**（巡回2 の `bottomLeading` 移設では不十分）: closed pose では occlusion region 2 枚が**上下に積まる**（上=時刻領域、下=Wi-Fi 図形領域）ため、枠内のどこ（topLeading / bottomLeading）にラベルを置いても status bar 図形と被り、左端が切れる（`.tmpx/f_rg_tr3.png`、`.tmpx/v2_rg_bl.png` 等）。**修正**: `RegionOutline` の overlay ラベルを **occlusion のみ `opacity(0)`（非表示）** にし、枠線（青）と summary の数（`division N（active N）/ occlusion N（active N）`）で可視化。division（折り目）は status bar と被らないので枠内 bottomLeading のまま。`.fixedSize()`（1 語の途中折れ防止）も追加（`ReservedRegionsPage.swift`）。
+- **再巡回（再ビルド後、念のため全タブ・両 pose）**: Hinge closed（status 3 行折り返し・ゲージ box 内）/ open（fully open 3.142 rad・ゲージ 180°）正常。Overview・Two Pane・Bar・Scenes・UIKit の closed・open とも画面崩れ・要素重複なし（`.tmpx/final_*_c.png` / `final_*_o.png` / `w_rg_*`）。
+- **Regions 修正の確定**: closed 外側 `.tmpx/w_rg_closed.png` を右上 2 倍クロップ（`w_rg_tr.png`）で目視→ occlusion 枠（青）内に文字がなく、時刻・Wi-Fi 図形上にラベルが乗っておらず左端切れも解消。open 内側 `w_rg_in.png` 同様に clean。
+- **UIKit の nav タイトル重複は巡回2 の修正（safeArea+60）で解消済み**: closed 外側 `final_ui_c.png` を左上 2 倍クロップ（`final_ui_c_tl.png`）で目視→ 「UIKit Demo」タイトルと info ラベル（hinge: closed 開始）は上下分離。
+- **Bar opt-in sheet 再確認（再ビルド後）**: `xcb_snapshot_ui` → `xcb_tap e67`（gear）で sheet「opt-in pressed / gear（縦バー toolbar ボタン）/ 閉じる」出現（`final_bar_gear.png`）、`閉じる` で閉幕。
+- **巡回3 で新たな不具合なし** → 変更は occlusion ラベル非表示の 1 ファイルのみ。
+
 ## 残作業（次のセッション）
 
 1. ~~§6 の各ポーズを実際に観測する~~ **完了**（下 6〜9・12〜14）。

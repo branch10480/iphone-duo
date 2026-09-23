@@ -19,3 +19,6 @@
 - 2026-09-23: probe2 axpress「Open」後、simctl io screenshot --display=1 は landscape 2034×1398 の外側バッファ（全黒でよい）を返す。content 確認は --display=3（2853×2007 内側）が正。pose 変更直後の display=1 黒スクショは pose 依存の既知挙動で app 不調ではない
 - 2026-09-23: probe2 axpress は needle の先頭一致をそのまま 1 件押下するため、状態変化ボタン（例「Style: auto → overlay」→押下後「Style: split」）の検証は押下前後の candidate 文字列変化とスクショで二重確認する。押下後に文字列が変わるだけで機能は正常
 - 2026-09-23: simctl io screenshot の display インデックス: --display=1=外側バッファ（closed で外側が表向き / open 後 landscape 2034x1398）, --display=3=内側バッファ（open 後 2007x2853 portrait）。pose 変更後 2 秒待ってから撮る。内側内容確認は 3 が正
+- 2026-09-23: 縦バー opt-in toolbar ボタン（gear）の tap は DeviceHub ミラー click/axpress で不感のまま、sim 本体の xcb_snapshot_ui→xcb_tap（elementRef）で有効。シート等の可視反応検証は本体 axtree 経由が確実
+- 2026-09-23: sips --cropOffset --cropToHeightWidth が exit 13 で出ない。PIL crop+resize（python3 -c "from PIL import Image; im.crop(...).resize(...).save(...)") で動く
+- 2026-09-23: xcb_build_run_sim 直後に probe2 axpress が pressed:0 を返す（ミラー axtree 未反映）。xcb_wait_for_ui textContains → xcb_tap elementRef が安定

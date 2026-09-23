@@ -141,16 +141,23 @@ private struct RegionOutline: View {
     var body: some View {
         Rectangle()
             .strokeBorder(color, lineWidth: 2)
-            // occlusion（カメラ孔）region は status bar（時刻・Wi-Fi）の載る領域そのもの。
-            // ラベルを topLeading に置くと文字が status bar 図形と重なる（閉じ pose で既視）。
-            // 下端側（bottomLeading）へ移し、素材背景で status bar 図形を透かし表示する。
+            // occlusion（カメラ孔）region は status bar（時刻・Wi-Fi）の載る領域そのもので、
+            // 閉じ pose では上下 2 枚積まるため、枠内のどこに置いてもラベルが図形と被る。
+            // → occlusion のラベルは非表示にし、枠線（青）と summary の数で可視化する。
+            // division（折り目）は status bar と被らないので枠内 bottomLeading で出す。
             .overlay(alignment: .bottomLeading) {
                 Text("\(label) \(region.isActive ? "active" : "inactive")")
                     .font(.caption2)
+                    .fixedSize()
                     .foregroundStyle(color)
                     .padding(2)
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 4))
                     .padding(2)
+                    // occlusion（カメラ孔）は status bar（時刻・Wi-Fi）の載る領域そのもの。2 つが
+                    // 上下積まれて、枠内のどこに置いてもラベルが status bar と被る → occlusion の
+                    // ラベルは非表示にし、枠線（青）と summary の数で可視化する。division（折り目）
+                    // は status bar と被らないので枠内 bottomLeading で出す。
+                    .opacity(label == "occlusion" ? 0 : 1)
             }
             .frame(width: max(region.frame.width, 2), height: max(region.frame.height, 2))
             .position(x: region.frame.midX, y: region.frame.midY)
