@@ -22,3 +22,4 @@
 - 2026-09-23: 縦バー opt-in toolbar ボタン（gear）の tap は DeviceHub ミラー click/axpress で不感のまま、sim 本体の xcb_snapshot_ui→xcb_tap（elementRef）で有効。シート等の可視反応検証は本体 axtree 経由が確実
 - 2026-09-23: sips --cropOffset --cropToHeightWidth が exit 13 で出ない。PIL crop+resize（python3 -c "from PIL import Image; im.crop(...).resize(...).save(...)") で動く
 - 2026-09-23: xcb_build_run_sim 直後に probe2 axpress が pressed:0 を返す（ミラー axtree 未反映）。xcb_wait_for_ui textContains → xcb_tap elementRef が安定
+- 2026-09-23: probe2 axpress「Bar」は DeviceHub メニューの「Show Tab Bar」等 AXMenuItem に先頭一致して誤押下することがある（app 画面は不変のまま）。タブ切り替わったか必ずスクショで確認
