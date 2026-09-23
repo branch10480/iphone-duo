@@ -60,9 +60,10 @@ struct HingePage: View {
     }
 
     private var statusDetail: String {
-        hinge == nil
-            ? "This hierarchy does not provide hinge updates (e.g. outer display / non-Duo device)."
-            : "Hinge data is for interaction & effects. Use Arrangement / Reserved Regions for layout."
+        guard hinge != nil else {
+            return "この階層はヒンジ更新を提供していません（外側ディスプレイなど）。レイアウト判断は Arrangement / Reserved Regions を使います。"
+        }
+        return "ヒンジデータはインタラクション・エフェクト用です。レイアウト判断は Arrangement / Reserved Regions を使います。"
     }
 
     private var angleText: String {

@@ -14,3 +14,4 @@
 - 2026-09-23: git push は bash の cd/&&/パイプだと DNS 解決できず rc128 になる。単独 `git -C /path push -u origin main`（専用経路）で成功。成功表示は `refs/heads/seed-transfer:refs/heads/main`。commit と push を分ける
 - 2026-09-23: simctl io のディスプレイインデックスは --display=1=外側(1398×2034) / --display=3=内側(2007×2853) / primary-1=内側。SEED.md の primary-1 以外の別表示で外側単体を撮るときは 1。inkmap で点灯/消失の blob 差で判定
 - 2026-09-23: xcb_wait_for_ui の textContains が複数マッチで TARGET_AMBIGUOUS を返すと結果に Candidates の elementRef 一覧が出る。そのまま tap せず、role/identifier で絞り込み直す（例: "Vertical Bar" は tab+switch+text の3件）
+- 2026-09-23: SwiftUI の Shape.path(in rect) は親 frame 座標と一致せず描画がずれる（固定 frame 付けでも box 底割れ）。半円ゲージは Canvas（frame 領域をクリップして frame 局座標で描画）に置換すると確定して内包できる。GraphicsContext は .quaternary/.tint を解決せず Color 系が必要
