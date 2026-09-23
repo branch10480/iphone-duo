@@ -8,3 +8,4 @@
 - 2026-09-22: SwiftUI の swiftinterface は `$SDK/System/Library/Frameworks/SwiftUI.framework/Modules/SwiftUI.swiftmodule/`（Cryptexes 配下には無い）。UIKit ヘッダは `artifacts/ios27.1-sdk/` に抽出済み
 - 2026-09-23: sandbox 内の `swiftc` は `TMPDIR=$PWD/tmpdir -module-cache-path $PWD/tmpdir/mcache` を付ければ通る（`sandbox-exec: sandbox_apply` の警告は無害、exit 0）。docs/development.md の記述どおり。09-22 の「通らない」は module cache の既定パスが拒否されただけだった
 - 2026-09-22: `xcrun` の「couldn't create cache file /var/folders/…」は sandbox の TMPDIR 拒否で無害
+- 2026-09-23: UIMenu popup は app コンテンツとは別レイヤー（sim ミラー越しの CGEvent click は項目にも外側にも不感。27点 sweep で idle 不変）。メニュー開閉の検証はスクショ上の blob 増減でやる
