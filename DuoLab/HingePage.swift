@@ -19,7 +19,7 @@ struct HingePage: View {
                 }
 
                 GroupBox("Hinge Angle（live）") {
-                    // エフェクト: 角度で動くゲージ（ラジアン → 0…180° に正規化）
+                    // エフェクト: 角度で動くゲージ（ラジアン → 0…180° に正規化）。
                     HingeAngleGauge(angle: hinge?.angle ?? .zero)
                         .frame(maxWidth: .infinity)
                     Text(angleText)
@@ -69,42 +69,45 @@ struct HingePage: View {
 @available(iOS 27.1, *)
 private struct HingeAngleGauge: View {
     let angle: Angle
+
+    // 半円ゲージを固定テンプレート（220×128）の Canvas 局座標で描く。
+    // 旧実装は GeometryReader の不定サイズに radius = min(w, h*1.8)/2 を乗せて
+    // center.y = h*0.9 だったので、幅狭な面（外側 portrait など）だと radius 側が
+    // h 依存になり弧の底が GroupBox 底からはみ出していた（2026-09-23 実スクショ）。
+    // Shape の path(in rect) は frame 原点と座標が一致しないことがあり（実スクショで
+    // 確認）、Canvas は frame 領域をクリップして canvas 座標で描くので、半円が
+    // frame 内に完全に内包される。半円は中心から上下 ±55pt（r50 + stroke5）：
+    // center=(110,60)、r=50 で弧は y=5..115・x=55..165、frame 高 128 の中に収まる。
+    private static let size = CGSize(width: 220, height: 128)
+    private static let center = CGPoint(x: 110, y: 60)
+    private static let radius: CGFloat = 50
+
     var body: some View {
-        GeometryReader { proxy in
-            let w = proxy.size.width
-            let h = proxy.size.height
-            // 0 = 閉（0°）… π = 開（180°）
-            let t = min(max(angle.radians / .pi, 0), 1)
-            ZStack {
-                ArcPath(center: CGPoint(x: w / 2, y: h * 0.9),
-                         radius: min(w, h * 1.8) / 2)
-                    .stroke(.quaternary, lineWidth: 10)
-                ArcPath(center: CGPoint(x: w / 2, y: h * 0.9),
-                         radius: min(w, h * 1.8) / 2,
-                         fraction: t)
-                    .stroke(.tint, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                Circle().fill(.tint).frame(width: 8)
-                    .offset(x: -cos(t * .pi) * min(w, h * 1.8) / 2,
-                            y: -sin(t * .pi) * min(w, h * 1.8) / 2)
-                    .position(x: w / 2, y: h * 0.9)
-            }
+        // 0 = 閉（0°）… π = 開（180°）
+        let t = min(max(angle.radians / .pi, 0), 1)
+        Canvas { ctx, _ in
+            let c = Self.center
+            let r = Self.radius
+            var track = Path()
+            track.addArc(center: c, radius: r,
+                          startAngle: .degrees(180), endAngle: .degrees(0),
+                          clockwise: true)
+            // Canvas 描画コンテキストでは .quaternary / .tint の解決が不確実なので、
+            // 実装色の opacity 表現で同じ見た目（淡い軌道 + アクセント実測線）を再現する。
+            ctx.stroke(track, with: .color(Color.primary.opacity(0.18)),
+                       style: .init(lineWidth: 10))
+            var prog = Path()
+            prog.addArc(center: c, radius: r,
+                         startAngle: .degrees(180),
+                         endAngle: .degrees(180 - 180 * t), clockwise: true)
+            ctx.stroke(prog, with: .color(Color.accentColor),
+                       style: .init(lineWidth: 10, lineCap: .round))
+            // ポインタ（端点 8pt）
+            let p = CGPoint(x: c.x - cos(t * .pi) * r, y: c.y - sin(t * .pi) * r)
+            ctx.fill(Path(ellipseIn: CGRect(x: p.x - 4, y: p.y - 4, width: 8, height: 8)),
+                     with: .color(Color.accentColor))
         }
-    }
-}
-
-@available(iOS 27.1, *)
-private struct ArcPath: Shape {
-    var center: CGPoint
-    var radius: CGFloat
-    var fraction: CGFloat = 1
-
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        p.addArc(center: center, radius: radius,
-                 startAngle: .degrees(180),
-                 endAngle: .degrees(180 - 180 * Double(fraction)),
-                 clockwise: true)
-        return p
+        .frame(width: Self.size.width, height: Self.size.height)
     }
 }
 
