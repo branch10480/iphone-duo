@@ -545,9 +545,7 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
 .demo-pane.orange svg { fill: var(--orange); }
 .demo-areas {
   position: relative;
-  max-width: 720px;
   margin: 0 auto;
-  height: 240px;
   border-radius: var(--r-md);
   border: 1px solid var(--separator);
   background:
@@ -556,49 +554,58 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
       color-mix(in srgb, var(--purple) 4%, var(--bg-elev)));
   overflow: hidden;
 }
+/* --- pose 別アスペクト（実測ディスプレイ比） --- */
+/* closed・外側 = portrait 1398×2034 → 2:3 */
+.demo-areas.pose-closed { width: 280px; height: 420px; }
+/* open・内側 = landscape 2853×2007 → 4:3 */
+.demo-areas.pose-open   { width: 480px; height: 360px; }
+
 .demo-areas .row {
   position: absolute;
-  left: 6%; top: 12%;
-  width: 34%;
+  left: 5%; top: 12%;
+  width: 60%;
   background: var(--bg-elev);
   border: 1px solid var(--separator);
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 11.5px;
+  padding: 6px 8px;
+  font-size: 10px;
   color: var(--text-2);
 }
 .demo-areas .row + .row { top: 34%; }
 .demo-areas .row + .row + .row { top: 56%; }
-.demo-areas .fold {
-  /* 折り目（division）バンドは表示領域の中央を横断（foldClearRect と整合）。
-     left 44.5% + 幅 11% → 中心 50% で左右対称。 */
-  position: absolute; left: 44.5%; top: 0; bottom: 0;
-  width: 11%;
-  border-left: 2px dashed var(--red);
-  border-right: 2px dashed var(--red);
-  background: color-mix(in srgb, var(--red) 8%, transparent);
-}
-.demo-areas .fold span {
-  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-  font: 600 9.5px var(--font-mono); color: var(--red); white-space: nowrap;
-}
+
+/* --- occlusion（カメラ孔 = status bar 領域）--- */
+/* 実測: closed 右上 x82-100% / y0-25%, open 右端 x91-100% / y0-25% */
 .demo-areas .occl {
-  /* occlusion（カメラ孔 + status bar）= closed・外側の実測どおり右上の縦長 1 枚
-     （x 0.82〜1.0、y 0〜0.25）。summary は "occlusion 2 (active 2)"（2 件が上下
-     積もって見える）だが、実スクショでは seam なしの縦長枠。2 枚とも同一位置
-     に重なるので、1 枚の枠 + 内部に 2 つの区画線（時刻/ Wi-Fi の境目）で表現。 */
   position: absolute;
-  right: 0; top: 0; width: 18%; height: 25%;
   border: 2px solid var(--tint);
   border-radius: 6px;
 }
-/* 2 件（時刻 / Wi-Fi 図形）の区画線。実測では 2 枠が完全に接して 1 つの縦長枠に
-   見えるため、1 枚の枠内に上下 1/2 の位置に虚線を引き、件数 2 を示す。 */
-.demo-areas .occl.bottom {
-  border: none;
-  right: 3%; top: 12.5%; width: 12%; height: 0;
-  border-top: 2px dashed var(--tint);
-  border-radius: 0;
+.demo-areas.pose-closed .occl { right: 0; top: 0; width: 18%; height: 25%; }
+.demo-areas.pose-open   .occl { right: 0; top: 0; width:  9%; height: 25%; }
+/* 2 件の境目（虚線区画） */
+.demo-areas .occl-div {
+  position: absolute; border: none;
+  border-top: 2px dashed var(--tint); border-radius: 0;
+}
+.demo-areas.pose-closed .occl-div { right: 3%; top: 12.5%; width: 12%; height: 0; }
+.demo-areas.pose-open   .occl-div { right: 3%; top: 12.5%; width:  6%; height: 0; }
+
+/* --- division（折り目）--- */
+/* closed = 0 件（存在しない）/ open = 1 件 inactive（幅0）→ 実測では両方とも表示されない。
+   inactive 枠（薄い）で中央の意図を示す。 */
+.demo-areas .fold {
+  position: absolute; top: 0; bottom: 0;
+  border-left: 2px dashed var(--red);
+  border-right: 2px dashed var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  opacity: 0.35; /* inactive = 淡く */
+}
+.demo-areas.pose-closed .fold { left: 44.5%; width: 11%; }
+.demo-areas.pose-open   .fold { left: 44.5%; width: 11%; }
+.demo-areas .fold span {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  font: 600 9px var(--font-mono); color: var(--red); white-space: nowrap;
 }
 .demo-areas .summary-pill {
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
@@ -897,20 +904,36 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
     <h2>Regions<span class="badge-beta">レイアウト</span></h2>
     <p class="lede"><code class="inline">reservedRegions</code> で折り目（division）・カメラ（occlusion）の予約領域をクエリし、content を折り目を横断しないよう<strong>退避（displacement）</strong>配置するタブ。</p>
 
-    <h3>デモの構成</h3>
-    <div class="demo">
-      <p class="demo-title">Regions（closed・外側）</p>
-      <div class="demo-areas">
-        <div class="occl top"></div>
-        <div class="occl bottom"></div>
-        <div class="row">Content row 0 — avoids the crease</div>
-        <div class="row">Content row 1 — avoids the crease</div>
-        <div class="row">Content row 2 — avoids the crease</div>
-        <div class="fold"><span>division</span></div>
-        <div class="summary-pill">division 0（active 0） / occlusion 2（active 2）</div>
+    <h3>デモの構成（pose 別）</h3>
+    <p class="cap" style="margin-bottom:10px">occlusion（青枠）は<strong>右上</strong>に位置する（closed・外側と open・内側で幅が異なる）。division（赤破線）は closed では 0 件、open では inactive（幅 0）のため淡い表示。content 行は折り目を避けて<strong>左側</strong>へ退避（displacement）。</p>
+    <div class="pose-row">
+      <div class="pose">
+        <p class="pose-label">closed・外側（portrait 1398×2034）</p>
+        <div class="demo-areas pose-closed">
+          <div class="occl"></div>
+          <div class="occl-div"></div>
+          <div class="row">Content row 0</div>
+          <div class="row">Content row 1</div>
+          <div class="row">Content row 2</div>
+          <div class="summary-pill">division 0 / occlusion 2 (active 2)</div>
+        </div>
+        <p class="dims">occlusion: x 82%〜100% / y 0〜25%（実測）</p>
       </div>
-      <p class="cap">青枠 = occlusion（カメラ孔 = status bar の載る領域。実測: 件数 2 が右上に完全に接して 1 つの縦長枠に見える → 枠は 1 つ、内部の虚線が 2 件の境目）／ 赤破線 = division（折り目・中央を横断）／ 下隅 = live summary</p>
+      <div class="pose">
+        <p class="pose-label">open・内側（landscape 2853×2007）</p>
+        <div class="demo-areas pose-open">
+          <div class="occl"></div>
+          <div class="occl-div"></div>
+          <div class="row">Content row 0</div>
+          <div class="row">Content row 1</div>
+          <div class="row">Content row 2</div>
+          <div class="fold"><span>division<br>(inactive)</span></div>
+          <div class="summary-pill">division 1 (active 0) / occlusion 2 (active 1)</div>
+        </div>
+        <p class="dims">occlusion: x 91%〜100% / y 0〜25%（実測）</p>
+      </div>
     </div>
+    <p class="cap">青枠 = occlusion（カメラ孔 = status bar の載る領域。実測: 右上に縦長 1 枠、2 件の境目に虚線）／ 赤破線 = division（折り目、中央を横断。closed=0件 / open=inactive）／ ピル = live summary</p>
 
     <h3>実装のポイント</h3>
     <pre class="listing"><span class="k">let</span> divisions = proxy.reservedRegions(<span class="k">kind</span>: <span class="t">.division</span>, options: includeInactive ? [<span class="t">.includeInactive</span>] : [])

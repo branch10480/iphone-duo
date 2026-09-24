@@ -37,3 +37,4 @@
 - 2026-09-24: SwiftUI の Canvas/Path.addArc は y 下向き座標（UIKit 慣習）。knob を y 上向き式で描くと弧の端点と 2r ずれて浮く。arc の端点と一致させたい図形は addArc の角度 φ を共用し (c.x+r·cosφ, c.y+r·sinφ) で描く（clockwise は経路だけで端点は角度で決まる）
 - 2026-09-24: DuoLab の tab 要素（xcb_wait_for_ui の ref）は action=none で xcb_tap が TARGET_NOT_ACTIONABLE を返す。タブ切替は probe2 axpress <DeviceHub pid> "Hinge" one が有効（切替はスクショで確認）
 - 2026-09-24: xcrun simctl io screenshot の成功表示（Saved screenshot）は stdout に出る。2>/dev/null; echo shot と組み合わせると成功・拒否の区別がつかず「stderr を捨てている」注記が立つ。ファイル存在確認を別途する
+- 2026-09-24: DuoLab closed・外側の occlusion 青枠は seam なしの縦長 1 枚（x0.82〜1.0、y0〜25%、カメラ孔+時刻+Wi-Fi図形をすべて囲う）。「上下 2 枚積まる」という docs 記述より実スクショのピクセル計測を優先し、件数 2 は枠内中央の虚線区画線で表現するのが整合する
