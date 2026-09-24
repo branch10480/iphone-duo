@@ -21,6 +21,7 @@
 - 2026-09-23: simctl io screenshot の display インデックス: --display=1=外側バッファ（closed で外側が表向き / open 後 landscape 2034x1398）, --display=3=内側バッファ（open 後 2007x2853 portrait）。pose 変更後 2 秒待ってから撮る。内側内容確認は 3 が正
 - 2026-09-23: 縦バー opt-in toolbar ボタン（gear）の tap は DeviceHub ミラー click/axpress で不感のまま、sim 本体の xcb_snapshot_ui→xcb_tap（elementRef）で有効。シート等の可視反応検証は本体 axtree 経由が確実
 - 2026-09-23: sips --cropOffset --cropToHeightWidth が exit 13 で出ない。PIL crop+resize（python3 -c "from PIL import Image; im.crop(...).resize(...).save(...)") で動く
+- 2026-09-24: 上の PIL 手順は不要。切り出し拡大は read_file の crop / scale（{"path":"x.png","crop":[x0,y0,x1,y1],"scale":2}）で 1 回で見える
 - 2026-09-23: xcb_build_run_sim 直後に probe2 axpress が pressed:0 を返す（ミラー axtree 未反映）。xcb_wait_for_ui textContains → xcb_tap elementRef が安定
 - 2026-09-23: probe2 axpress「Bar」は DeviceHub メニューの「Show Tab Bar」等 AXMenuItem に先頭一致して誤押下することがある（app 画面は不変のまま）。タブ切り替わったか必ずスクショで確認
 - 2026-09-23: open pose（内外コピーの中心xが負になる側）では DeviceHub ミラーの axpress が外側コピーに落ち、sim 内タブが切り替わらない（pressed:1 なのに画面不変）。open の巡回は sim 本体の xcb_wait_for_ui→xcb_tap、または axpress 後必ずスクショでタブ切替を確認

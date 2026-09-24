@@ -13,8 +13,7 @@
   `.tmpx/axtest/probe2 axpress <DeviceHub pid> "<タブ名>" one; sleep 2` でよい。どちらも「成功」と言いながら
   画面が変わらないことがある（2026-09-23 に 1 turn で 2 回）ので、**撮って切り替わったかを絵で確認してから**次へ進む。
 - **修正後の確認は、該当領域を切り出して 2 倍に拡大した画像も `read_file` で見る**
-  （`python3 -c "from PIL import Image; im=Image.open('x.png'); im.crop((x0,y0,x1,y1)).resize((w*2,h*2)).save('x_tr.png')"`、
-  1 枚 560 tokens）。全体像だけだと小さい字の欠け（「oc… active」）を見落として「解消」と報告した（2026-09-23 に 2 回）。
+  （`read_file {"path":"x.png","crop":[x0,y0,x1,y1],"scale":2}`。PIL の自作 script は要らない。2026-09-24 から）。全体像だけだと小さい字の欠け（「oc… active」）を見落として「解消」と報告した（2026-09-23 に 2 回）。
 - UI の値の読み取りは `xcb_wait_for_ui {"predicate":"textContains","text":"…"}`（sim 本体の axtree）が
   DeviceHub ミラーより安定。`xcb_snapshot_ui` → `xcb_tap` を使うなら**同じ反復で続けて**呼ぶ（間に長考が入ると snapshot が失効する）。
 - `xcb_install_app_sim` は `appPath` を渡す（`xcb_get_sim_app_path` の結果）。
