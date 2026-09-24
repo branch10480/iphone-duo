@@ -583,16 +583,23 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
   font: 600 9.5px var(--font-mono); color: var(--red); white-space: nowrap;
 }
 .demo-areas .occl {
-  /* occlusion（カメラ孔）= status bar の載る領域そのもの。closed pose では
-     上（時刻）/ 下（Wi-Fi 図形）が上下に積もる（実測：右上 x 0.82〜1.0）。
-     左右は揃え、上下のみ積む。右端に寄せ、幅は status bar 相当。 */
+  /* occlusion（カメラ孔 + status bar）= closed・外側の実測どおり右上の縦長 1 枚
+     （x 0.82〜1.0、y 0〜0.25）。summary は "occlusion 2 (active 2)"（2 件が上下
+     積もって見える）だが、実スクショでは seam なしの縦長枠。2 枚とも同一位置
+     に重なるので、1 枚の枠 + 内部に 2 つの区画線（時刻/ Wi-Fi の境目）で表現。 */
   position: absolute;
-  width: 18%; height: 14px;
+  right: 0; top: 0; width: 18%; height: 25%;
   border: 2px solid var(--tint);
   border-radius: 6px;
 }
-.demo-areas .occl.top    { right: 3%; top: 10px; }
-.demo-areas .occl.bottom { right: 3%; top: 30px; }
+/* 2 件（時刻 / Wi-Fi 図形）の区画線。実測では 2 枠が完全に接して 1 つの縦長枠に
+   見えるため、1 枚の枠内に上下 1/2 の位置に虚線を引き、件数 2 を示す。 */
+.demo-areas .occl.bottom {
+  border: none;
+  right: 3%; top: 12.5%; width: 12%; height: 0;
+  border-top: 2px dashed var(--tint);
+  border-radius: 0;
+}
 .demo-areas .summary-pill {
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
   font: 600 10.5px var(--font-mono);
@@ -902,7 +909,7 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
         <div class="fold"><span>division</span></div>
         <div class="summary-pill">division 0（active 0） / occlusion 2（active 2）</div>
       </div>
-      <p class="cap">青枠 = occlusion（カメラ孔。status bar の載る領域そのもの）／ 赤破線 = division（折り目）／ 下隅 = live summary</p>
+      <p class="cap">青枠 = occlusion（カメラ孔 = status bar の載る領域。実測: 件数 2 が右上に完全に接して 1 つの縦長枠に見える → 枠は 1 つ、内部の虚線が 2 件の境目）／ 赤破線 = division（折り目・中央を横断）／ 下隅 = live summary</p>
     </div>
 
     <h3>実装のポイント</h3>
@@ -912,7 +919,7 @@ ol.steps ul li, ol.steps ol li { margin: 4px 0; line-height: 1.55; }
 <span class="c">// content は foldClearRect で広い側へ丸ごと移動（displacement）</span></pre>
     <ul class="plain">
       <li><strong>displacement</strong> — 折り目バンドは表示領域の中央を横切り、方向は pose に依存する（縦 / 横）。content 全体を「折り目を横断しないクリア側」（広い側）の矩形に丸ごと配置し、行が折り目をまたがないようにする。</li>
-      <li><strong>occlusion（カメラ孔）ラベル非表示化</strong> — occlusion region は status bar（時刻・Wi-Fi）の載る領域そのもので、closed pose では上下 2 枚積まるため枠内のどこに置いてもラベルが図形と被る。2026-09-23 巡回でラベルを非表示にし、枠線（青）と summary の数だけで可視化。division のラベルは status bar と被らないため枠内に出す。</li>
+      <li><strong>occlusion（カメラ孔）ラベル非表示化</strong> — occlusion region は status bar（時刻・Wi-Fi）の載る領域そのもので、closed pose では件数 2 が右上に完全に接して 1 つの縦長枠に見える（2026-09-24 実測）ため枠内のどこに置いてもラベルが図形と被る。2026-09-23 巡回でラベルを非表示にし、枠線（青）と summary の数だけで可視化。division のラベルは status bar と被らないため枠内に出す。</li>
       <li><strong>inactive toggle</strong> — <code class="inline">.includeInactive</code> を切り替えて「折りたたまれていないとき inactive（幅 0）」になる挙動を確認する。</li>
       <li><strong>live summary</strong> — 下隅のピルが件数と active 数を常時表示（open = division 1（active 0） / occlusion 2（active 1）、closed = division 0 / occlusion 2（active 2））。</li>
     </ul>
